@@ -2,7 +2,6 @@
 Index View
 """
 import streamlit as st
-from streamlit_ace import st_ace
 
 from views.editor import editor
 
@@ -10,7 +9,7 @@ from views.editor import editor
 def main():
     options = [
         'Inicio',
-        'Editor'
+        'Editor',
     ]
 
     choice = st.sidebar.selectbox('', options, index=0)

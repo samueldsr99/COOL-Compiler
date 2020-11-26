@@ -3,6 +3,8 @@ Editor View
 """
 import streamlit as st
 from streamlit_ace import st_ace
+from core.compiler import compile
+
 
 LANGUAGES = [
     'python',
@@ -24,7 +26,7 @@ KEYBINDINGS = [
 def editor():
     st.title(':memo: Cool Editor')
 
-    content = st_ace(
+    code = st_ace(
         language=st.sidebar.selectbox('Language mode', options=LANGUAGES, index=3),
         theme=st.sidebar.selectbox('Theme', options=THEMES, index=1),
         keybinding=st.sidebar.selectbox('Keybinding mode', options=KEYBINDINGS, index=3),
@@ -37,4 +39,8 @@ def editor():
         key='ace-editor'
     )
 
-    st.code(content)
+
+    # compile code
+    result = compile(code)
+
+    st.code(result)
