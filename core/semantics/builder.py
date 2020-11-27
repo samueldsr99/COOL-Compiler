@@ -13,7 +13,7 @@ class TypeBuilder:
         self.context = context
         self.current_type = None
         self.errors = errors
-    
+
     @visitor.on('node')
     def visit(self, node):
         pass
@@ -49,7 +49,7 @@ class TypeBuilder:
                 param_types.append(self.context.get_type(type_))
             except SemanticError as e:
                 param_types.append(ErrorType())
-                self.errors.append(e.text)        
+                self.errors.append(e.text)
         try:
             ret_type = self.context.get_type(node.return_type)
         except SemanticError as e:

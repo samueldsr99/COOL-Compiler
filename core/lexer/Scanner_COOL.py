@@ -9,15 +9,15 @@ Lexical units of COOL
 - White space
 """
 from .lexer import Lexer
-from utils.cmp.my_tools.regex import EPSILON
-from core.utils.cmp.utils import Token
+from cmp.my_tools.regex import EPSILON
+from cmp.utils import Token
 
 
 digit = '|'.join(str(n) for n in range(0, 10))
 lower = '|'.join(chr(n) for n in range(ord('a'), ord('z') + 1))
 mayus = '|'.join(chr(n) for n in range(ord('A'), ord('Z') + 1))
 letter = lower + '|' + mayus
-symbol = digit + '|' + letter + '|' + '|'.join([        
+symbol = digit + '|' + letter + '|' + '|'.join([
     '<', '>', '=', '+', '-', '/', '%', '~', '!', '@', '_', '$',
     '?', '.', ':', ';', ',', ' ', '#', '{', '}', '*', '(', ')'
 ])  # Except: "  \  [  ]  ^
@@ -52,7 +52,7 @@ COMMENT = f'[--[{symbol}|\\|"]^\n]|[(*[{symbol}|\\|"|\n]^*)]'  # TODO: Check nes
 
 
 def build_lexer():
-    table = [('int', INTEGER)]      # Table of Regex's priority  
+    table = [('int', INTEGER)]      # Table of Regex's priority
     for regex in KEYWORDS:
         table.append((regex, regex))
     table.append(('true', TRUE))

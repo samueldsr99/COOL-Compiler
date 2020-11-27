@@ -1,4 +1,4 @@
-from core.utils.cmp.my_tools.regex import Regex
+from core.utils.cmp.tools.regex import Regex
 from core.utils.cmp.utils import Token
 from core.utils.cmp.automata import State
 
