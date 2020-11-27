@@ -29,7 +29,7 @@ semi, colon, comma, dot, opar, cpar, ocur, ccur, assign, case_sign = G.Terminals
 plus, minus, star, div, less, less_eq, equal, int_comp, at = G.Terminals(
     '+ - * / < <= = ~ @'
 )
-idx, intx, new, typex, string = G.Terminals('id int new type string')
+idx, intx, typex, string = G.Terminals('id int type string')
 
 
 # Productions
