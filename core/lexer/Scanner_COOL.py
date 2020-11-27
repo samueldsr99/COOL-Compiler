@@ -66,7 +66,7 @@ def build_lexer():
     table.append(('comment', COMMENT))
 
     print('>>> Building Lexer...')
-    return Lexer(table, 'eof')
+    return Lexer(table, '$')
 
 
 def cleaner(tokens: list):

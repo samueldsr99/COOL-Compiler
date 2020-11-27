@@ -29,6 +29,7 @@ class ShiftReduceParser:
 
             # Your code here!!! (Detect error)
             if (state, lookahead) not in self.action:
+                print(type(lookahead))
                 print(f'Error in state {state}, lookahead {lookahead}.')
                 return None
 
@@ -44,15 +45,16 @@ class ShiftReduceParser:
                 left, right = tag
                 for symbol in reversed(right):
                     stack.pop()
-                    assert stack.pop() == symbol, f'Parsing Error in Reduce case: {tag}'
+                    print(f'{stack[-1], type(stack[-1])}, {symbol.Name, type(symbol.Name)}')
+                    assert stack.pop() == symbol.Name, f'Parsing Error in Reduce case: {tag}'
                 state = stack[-1]
-                goto = self.goto[state, left]
-                stack += [left, goto]
+                goto = self.goto[state, left.Name]
+                stack += [left.Name, goto]
                 print('REDUCE ', left, right)
             # Your code here!!! (OK case)
             elif action == self.OK:
                 stack.pop()
-                assert stack.pop() == self.G.startSymbol, 'Parsing error in OK case'
+                assert stack.pop() == self.G.startSymbol.Name, 'Parsing error in OK case'
                 assert len(stack) == 1, 'Error: parsing ended with symbols in stack.'
                 print('OK')
                 return output

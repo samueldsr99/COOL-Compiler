@@ -24,6 +24,8 @@ def compile(code: str, errors: list = []):
     st.code(tokens)
 
     # Parse
+    if not code:
+        return 'OK'
     print('parsing')
     parser = LR1Parser(G)
     print('production_dict:', G.production_dict)
@@ -34,4 +36,4 @@ def compile(code: str, errors: list = []):
     if not left_parse:
         errors.append(left_parse)
     else:
-        return "OK"
+        return 'OK'
