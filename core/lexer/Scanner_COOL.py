@@ -25,7 +25,7 @@ escaped_symbol = ''
 for i in range(len(symbol)):
     if symbol[i] == '|':
         escaped_symbol += '|'
-    elif symbol[i] not in ('b', 't', 'n', 'f', '0', ' '):
+    elif symbol[i] not in ('0', ' '):
         escaped_symbol += f'\{symbol[i]}'
     else:
         escaped_symbol = escaped_symbol[:-1]
@@ -73,7 +73,6 @@ def cleaner(tokens: list):
     """
     Removes spaces and comments from tokens.
     Removes escaped new lines from strings.
-    Noramlizes escaped symbols in strings.
     """
     i = 0
     while i < len(tokens):
@@ -82,7 +81,6 @@ def cleaner(tokens: list):
             continue
         elif tokens[i].token_type == 'string':
             tokens[i].lex = tokens[i].lex.replace('\\\n', '')
-            tokens[i].lex = tokens[i].lex.replace('\\', '')
         i += 1
 
 

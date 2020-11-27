@@ -1,12 +1,6 @@
-import shelve
-
 from cmp.my_tools.regex import Regex
 from cmp.utils import Token
 from cmp.automata import State
-
-
-class LexerException(Exception):
-    pass
 
 
 class Lexer:
