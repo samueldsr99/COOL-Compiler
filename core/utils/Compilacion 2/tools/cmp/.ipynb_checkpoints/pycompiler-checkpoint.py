@@ -49,10 +49,6 @@ class NonTerminal(Symbol):
 
         if isinstance(other, tuple):
             assert len(other) > 1
-
-            if len(other) == 2:
-                other += (None,) * len(other[0])
-
             assert len(other) == len(other[0]) + 2, "Debe definirse una, y solo una, regla por cada símbolo de la producción"
             # assert len(other) == 2, "Tiene que ser una Tupla de 2 elementos (sentence, attribute)"
 
@@ -237,8 +233,6 @@ class Production(object):
     def __eq__(self, other):
         return isinstance(other, Production) and self.Left == other.Left and self.Right == other.Right
 
-    def __hash__(self):
-        return hash((self.Left, self.Right))
 
     @property
     def IsEpsilon(self):
@@ -285,8 +279,7 @@ class Grammar():
         self.Epsilon = Epsilon(self)
         self.EOF = EOF(self)
 
-        self.symbDict = { '$': self.EOF }
-        self.production_dict = {}
+        self.symbDict = {}
 
     def NonTerminal(self, name, startSymbol = False):
 
@@ -323,7 +316,6 @@ class Grammar():
 
         production.Left.productions.append(production)
         self.Productions.append(production)
-        self.production_dict[repr(production)] = production
 
 
     def Terminal(self, name):
@@ -370,12 +362,7 @@ class Grammar():
         try:
             return self.symbDict[name]
         except KeyError:
-            try:
-                
-                return self.production_dict[name]
-            except KeyError:
-                print('NOT FOUND:', name)
-                return None
+            return None
 
     @property
     def to_json(self):
@@ -427,7 +414,6 @@ class Grammar():
         G.Epsilon = self.Epsilon
         G.EOF = self.EOF
         G.symbDict = self.symbDict.copy()
-        G.production_dict = self.production_dict.copy()
 
         return G
 
@@ -442,8 +428,8 @@ class Grammar():
         else:
             return False
 
-    def AugmentedGrammar(self, force=False):
-        if not self.IsAugmentedGrammar or force:
+    def AugmentedGrammar(self):
+        if not self.IsAugmentedGrammar:
 
             G = self.copy()
             # S, self.startSymbol, SS = self.startSymbol, None, self.NonTerminal('S\'', True)
@@ -459,62 +445,3 @@ class Grammar():
         else:
             return self.copy()
     #endchange
-
-class Item:
-
-    def __init__(self, production, pos, lookaheads=[]):
-        self.production = production
-        self.pos = pos
-        self.lookaheads = frozenset(look for look in lookaheads)
-
-    def __str__(self):
-        s = str(self.production.Left) + " -> "
-        if len(self.production.Right) > 0:
-            for i,c in enumerate(self.production.Right):
-                if i == self.pos:
-                    s += "."
-                s += str(self.production.Right[i])
-            if self.pos == len(self.production.Right):
-                s += "."
-        else:
-            s += "."
-        s += ", " + str(self.lookaheads)[10:-1]
-        return s
-
-    def __repr__(self):
-        return str(self)
-
-
-    def __eq__(self, other):
-        return (
-            (self.pos == other.pos) and
-            (self.production == other.production) and
-            (set(self.lookaheads) == set(other.lookaheads))
-        )
-
-    def __hash__(self):
-        return hash((self.production,self.pos,self.lookaheads))
-
-    @property
-    def IsReduceItem(self):
-        return len(self.production.Right) == self.pos
-
-    @property
-    def NextSymbol(self):
-        if self.pos < len(self.production.Right):
-            return self.production.Right[self.pos]
-        else:
-            return None
-
-    def NextItem(self):
-        if self.pos < len(self.production.Right):
-            return Item(self.production,self.pos+1,self.lookaheads)
-        else:
-            return None
-
-    def Preview(self, skip=1):
-        unseen = self.production.Right[self.pos+skip:]
-        return [ unseen + (lookahead,) for lookahead in self.lookaheads ]
-
-    def Center(self):
-        return Item(self.production, self.pos)

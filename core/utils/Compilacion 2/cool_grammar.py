@@ -1,8 +1,7 @@
 from cmp.pycompiler import Grammar
-from core.semantics.tools.cool_ast import *
+from travels.tools.cool_ast import *
 
-
-G = Grammar()
+cool_G = Grammar()
 
 # Non-Terminals
 program = G.NonTerminal('<program>', startSymbol=True)
@@ -30,7 +29,7 @@ semi, colon, comma, dot, opar, cpar, ocur, ccur, assign, case_sign = G.Terminals
 plus, minus, star, div, less, less_eq, equal, int_comp, at = G.Terminals(
     '+ - * / < <= = ~ @'
 )
-idx, intx, typex, string = G.Terminals('id int type string')
+idx, intx, new, typex, string = G.Terminals('id int new type string')
 
 
 # Productions
