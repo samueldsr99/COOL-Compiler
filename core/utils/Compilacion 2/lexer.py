@@ -1,12 +1,6 @@
-import shelve
-
-from cmp.my_tools.regex import Regex
+from tools.regex import Regex
 from cmp.utils import Token
 from cmp.automata import State
-
-
-class LexerException(Exception):
-    pass
 
 
 class Lexer:
@@ -14,7 +8,7 @@ class Lexer:
         self.eof = eof
         self.regexs = self._build_regexs(table)
         self.automaton = self._build_automaton()
-
+    
     def _build_regexs(self, table):
         regexs = []
         for n, (token_type, regex) in enumerate(table):
@@ -27,20 +21,20 @@ class Lexer:
                     state.tag = (token_type, n)
             regexs.append(regex_aut)
         return regexs
-
+    
     def _build_automaton(self):
         start = State('start')
         # Your code here!!!
         for aut in self.regexs:
             start.add_epsilon_transition(aut)
-
+        
         return start.to_deterministic()
-
+        
     def _walk(self, string):
         state = self.automaton
         final = state if state.final else None
         final_lex = lex = ''
-
+            
         for symbol in string:
             # Your code here!!!
             if symbol in state.transitions:  # exists transition for symbol
@@ -52,7 +46,7 @@ class Lexer:
             else:
                 break
         return final, final_lex
-
+    
     def _tokenize(self, text):
         # Your code here!!!
         processed = 0
@@ -72,6 +66,6 @@ class Lexer:
             yield final_lex, ret.tag[0]
 
         yield '$', self.eof
-
+    
     def __call__(self, text):
         return [Token(lex, ttype) for lex, ttype in self._tokenize(text)]

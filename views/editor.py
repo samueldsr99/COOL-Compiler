@@ -39,8 +39,12 @@ def editor():
         key='ace-editor'
     )
 
-
     # compile code
-    result = compile(code)
+    errors = []
+    print('Compiling')
+    result = compile(code, errors)
 
-    st.code(result)
+    if errors:
+        st.error(errors)
+    else:
+        st.code(result)

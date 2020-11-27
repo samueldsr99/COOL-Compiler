@@ -286,7 +286,6 @@ class Grammar():
         self.EOF = EOF(self)
 
         self.symbDict = { '$': self.EOF }
-        self.production_dict = {}
 
     def NonTerminal(self, name, startSymbol = False):
 
@@ -323,7 +322,6 @@ class Grammar():
 
         production.Left.productions.append(production)
         self.Productions.append(production)
-        self.production_dict[repr(production)] = production
 
 
     def Terminal(self, name):
@@ -370,12 +368,7 @@ class Grammar():
         try:
             return self.symbDict[name]
         except KeyError:
-            try:
-                
-                return self.production_dict[name]
-            except KeyError:
-                print('NOT FOUND:', name)
-                return None
+            return None
 
     @property
     def to_json(self):
@@ -427,7 +420,6 @@ class Grammar():
         G.Epsilon = self.Epsilon
         G.EOF = self.EOF
         G.symbDict = self.symbDict.copy()
-        G.production_dict = self.production_dict.copy()
 
         return G
 

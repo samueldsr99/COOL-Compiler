@@ -8,8 +8,8 @@ Lexical units of COOL
 - Keywords
 - White space
 """
-from .lexer import Lexer
-from cmp.my_tools.regex import EPSILON
+from lexer import Lexer
+from tools.regex import EPSILON
 from cmp.utils import Token
 
 
@@ -17,7 +17,7 @@ digit = '|'.join(str(n) for n in range(0, 10))
 lower = '|'.join(chr(n) for n in range(ord('a'), ord('z') + 1))
 mayus = '|'.join(chr(n) for n in range(ord('A'), ord('Z') + 1))
 letter = lower + '|' + mayus
-symbol = digit + '|' + letter + '|' + '|'.join([
+symbol = digit + '|' + letter + '|' + '|'.join([        
     '<', '>', '=', '+', '-', '/', '%', '~', '!', '@', '_', '$',
     '?', '.', ':', ';', ',', ' ', '#', '{', '}', '*', '(', ')'
 ])  # Except: "  \  [  ]  ^
@@ -52,7 +52,7 @@ COMMENT = f'[--[{symbol}|\\|"]^\n]|[(*[{symbol}|\\|"|\n]^*)]'  # TODO: Check nes
 
 
 def build_lexer():
-    table = [('int', INTEGER)]      # Table of Regex's priority
+    table = [('int', INTEGER)]      # Table of Regex's priority  
     for regex in KEYWORDS:
         table.append((regex, regex))
     table.append(('true', TRUE))
@@ -67,6 +67,7 @@ def build_lexer():
 
     print('>>> Building Lexer...')
     return Lexer(table, 'eof')
+
 
 
 def cleaner(tokens: list):
@@ -85,11 +86,17 @@ def cleaner(tokens: list):
             tokens[i].lex = tokens[i].lex.replace('\\', '')
         i += 1
 
-
-def tokenizer(code: str, lexer=None):
+def scan_code(path: str, lexer=None):
     if lexer is None:
         lexer = build_lexer()
-
+    print('>>> Reading Code...')
+    code = ''
+    file = open(path, 'r')
+    while True:
+        line = file.readline()
+        if not line: break
+        code += line
+    
     print('>>> Tokenizing...')
     try:
         tokens = lexer(code)
@@ -98,15 +105,15 @@ def tokenizer(code: str, lexer=None):
     else:
         print('>>> Cleaning Tokens...')
         cleaner(tokens)
-
+        
         print('Done!!!')
         return tokens
 
 
 if __name__ == "__main__":
     lexer = build_lexer()
-    code_tokens = tokenizer('code.cl', lexer=lexer)
-    dim_tokens = tokenizer('dim_code.cl', lexer=lexer)
+    code_tokens = scan_code('code.cl', lexer=lexer)
+    dim_tokens = scan_code('dim_code.cl', lexer=lexer)
 
     try:
         assert len(dim_tokens) == len(code_tokens)
@@ -114,3 +121,7 @@ if __name__ == "__main__":
         print('All fine :)')
     except AssertionError:
         print(dim_tokens)
+
+
+
+ 
