@@ -14,7 +14,7 @@ class ShiftReduceParser:
     def _build_parsing_table(self):
         raise NotImplementedError()
 
-    def __call__(self, w):
+    def __call__(self, w, errors: list):
         stack = [0]
         cursor = 0
         output = []
@@ -25,12 +25,11 @@ class ShiftReduceParser:
 
             if self.verbose:
                 print(stack, '<---||--->', w[cursor:])
-            print(stack, '<---||--->', w[cursor:])
 
             # Your code here!!! (Detect error)
             if (state, lookahead) not in self.action:
                 print(type(lookahead))
-                print(f'Error in state {state}, lookahead {lookahead}.')
+                errors.append(f'ParsingError: Error in state {state}, lookahead {lookahead}.')
                 return None
 
             action, tag = self.action[state, lookahead]
