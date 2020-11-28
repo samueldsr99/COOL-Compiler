@@ -47,25 +47,27 @@ class Lexer:
                 break
         return final, final_lex
 
-    def _tokenize(self, text):
+    def _tokenize(self, text: str, errors: list):
         # Your code here!!!
         processed = 0
         while processed < len(text):
             final, final_lex = self._walk(text[processed:])    # get actual state and lex
             if final is None or len(final_lex) == 0:
-                raise Exception(f'Invalid token at position {processed + 1}: "{text[processed]}"')
-            processed += len(final_lex)
-            pos_ret = []
-            for s in final.state:
-                if s.tag is not None:
-                    pos_ret.append(s)
-            ret = pos_ret[0]
-            for i in range(1, len(pos_ret)):
-                if pos_ret[i].tag[1] < ret.tag[1]:
-                    ret = pos_ret[i]
-            yield final_lex, ret.tag[0]
+                errors.append(f'LexicographicError: Invalid token at position {processed + 1}: "{text[processed]}"')
+                processed += 1
+            else:
+                processed += len(final_lex)
+                pos_ret = []
+                for s in final.state:
+                    if s.tag is not None:
+                        pos_ret.append(s)
+                ret = pos_ret[0]
+                for i in range(1, len(pos_ret)):
+                    if pos_ret[i].tag[1] < ret.tag[1]:
+                        ret = pos_ret[i]
+                yield final_lex, ret.tag[0]
 
         yield '$', self.eof
 
-    def __call__(self, text):
-        return [Token(lex, ttype) for lex, ttype in self._tokenize(text)]
+    def __call__(self, text: str, errors: list):
+        return [Token(lex, ttype) for lex, ttype in self._tokenize(text, errors)]

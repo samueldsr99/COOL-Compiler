@@ -45,6 +45,6 @@ def editor():
     result = compile(code, errors)
 
     if errors:
-        st.error(errors)
+        st.text('\n'.join(error for error in errors))
     else:
         st.code(result)

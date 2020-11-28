@@ -44,7 +44,7 @@ SYMBOLS = [
     '<-', '+', '-', '/', '*', '~', '(', ')', '@', ',',
     '<', '<=', '=>', '=', ':', '.', ';', '{', '}'
 ]
-STRING = f'"[{symbol}|{escaped_symbol}|\\\n]^"'
+STRING = f'"[{symbol}|{escaped_symbol}|\\"|\\\n]^"'
 SPACE = '[ |\n|\t|\f|\r|\v][ |\n|\t|\f|\r|\v]^'
 TYPE_ID = f'[{mayus}][{letter}|{digit}|_]^'
 OBJECT_ID = f'[[{lower}][{letter}|{digit}|_]^]|[self]'
@@ -84,13 +84,13 @@ def cleaner(tokens: list):
         i += 1
 
 
-def tokenizer(code: str, lexer=None):
+def tokenizer(code: str, errors: list, lexer=None):
     if lexer is None:
         lexer = build_lexer()
 
     print('>>> Tokenizing...')
     try:
-        tokens = lexer(code)
+        tokens = lexer(code, errors)
     except Exception as e:
         print(e)
     else:
