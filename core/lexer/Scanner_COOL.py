@@ -37,8 +37,25 @@ if escaped_symbol.startswith('|'):
 # Tokens definition (regex)
 # Used in regexs [ ] ^ instead of ( ) * beacuse this symbols are in cool
 INTEGER = f'[{digit}][{digit}]^'
-KEYWORDS = ['class', 'else', 'fi', 'if', 'in', 'inherits', 'isvoid', 'let',
-            'loop', 'pool', 'then', 'while', 'case', 'esac', 'new', 'of', 'not']
+KEYWORDS = {
+    'class': '[c|C][l|L][a|A][s|S][s|S]',
+    'else': '[e|E][l|L][s|S][e|E]',
+    'fi': '[f|F][i|I]',
+    'if': '[i|I][f|F]',
+    'in': '[i|I][n|N]',
+    'inherits': '[i|I][n|N][h|H][e|E][r|R][i|I][t|T][s|S]',
+    'isvoid': '[i|I][s|S][v|V][o|O][i|I][d|D]',
+    'let': '[l|L][e|E][t|T]',
+    'loop': '[l|L][o|O][o|O][p|P]',
+    'pool': '[p|P][o|O][o|O][l|L]',
+    'then': '[t|T][h|H][e|E][n|N]',
+    'while': '[w|W][h|H][i|I][l|L][e|E]',
+    'case': '[c|C][a|A][s|S][e|E]',
+    'esac': '[e|E][s|S][a|A][c|C]',
+    'new': '[n|N][e|E][w|W]',
+    'of': '[o|O][f|F]',
+    'not': '[n|N][o|O][t|T]'
+}
 TRUE = f't[r|R][u|U][e|E]'
 FALSE = f'f[a|A][l|L][s|S][e|E]'
 SYMBOLS = [
@@ -54,8 +71,8 @@ COMMENT = f'[--[{symbol}|\\|"|\t]^\n]|[(*[{symbol}|\\|"|{SPACE}]^*)]'  # TODO: C
 
 def build_lexer():
     table = [('int', INTEGER)]      # Table of Regex's priority
-    for regex in KEYWORDS:
-        table.append((regex, regex))
+    for key in KEYWORDS:
+        table.append((key, KEYWORDS[key]))
     table.append(('true', TRUE))
     table.append(('false', FALSE))
     for regex in SYMBOLS:

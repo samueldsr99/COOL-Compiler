@@ -30,7 +30,8 @@ class ShiftReduceParser:
             # Your code here!!! (Detect error)
             if (state, lookahead) not in self.action:
                 print(type(lookahead))
-                errors.append(f'ParsingError: Error in state {state}, lookahead {lookahead}.')
+                print(f'SyntacticError in state {state}, lookahead {lookahead}')
+                errors.append(f'SyntacticError: Error at or near {w[cursor].lex}.')
                 return None
 
             action, tag = self.action[state, lookahead]
