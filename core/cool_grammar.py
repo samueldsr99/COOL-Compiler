@@ -14,7 +14,7 @@ block = G.NonTerminal('<block>')
 decl_list = G.NonTerminal('<decl-list>')
 case_list = G.NonTerminal('<case-list>')
 func_call = G.NonTerminal('<func-call>')
-expr_list, expr = G.NonTerminals('<expr-list> <expr>')
+expr_list, not_void_expr_list, expr = G.NonTerminals('<expr-list> <not-void-expr-list> <expr>')
 comp, arith, term, factor, atom = G.NonTerminals('<comp> <arith> <term> <factor> <atom>')
 
 # Terminals
@@ -39,8 +39,8 @@ program %= class_list, lambda h,s: ProgramNode(s[1])
 class_list %= class_def + class_list, lambda h,s: [s[1]] + s[2]
 class_list %= class_def, lambda h,s: [s[1]]
 
-class_def %= classx + typex + inherits + typex + ocur + feature_list + ccur, lambda h,s: ClassDeclarationNode(s[2], s[6], s[4])
-class_def %= classx + typex + ocur + feature_list + ccur, lambda h,s: ClassDeclarationNode(s[2], s[4])
+class_def %= classx + typex + inherits + typex + ocur + feature_list + ccur + semi, lambda h,s: ClassDeclarationNode(s[2], s[6], s[4])
+class_def %= classx + typex + ocur + feature_list + ccur + semi, lambda h,s: ClassDeclarationNode(s[2], s[4])
 
 feature_list %= attr_def + semi + feature_list, lambda h,s: [s[1]] + s[3]
 feature_list %= func_def + semi + feature_list, lambda h,s: [s[1]] + s[3]
@@ -49,8 +49,8 @@ feature_list %= G.Epsilon, lambda h,s: []
 attr_def %= idx + colon + typex + assign + expr, lambda h,s: AttrDeclarationNode(s[1], s[3], s[5])
 attr_def %= idx + colon + typex, lambda h,s: AttrDeclarationNode(s[1], s[3])
 
-func_def %= idx + opar + param_list + cpar + colon + typex + ocur + expr + ccur, lambda h,s: FuncDeclarationNode(s[1], s[3], s[6], s[8])
-func_def %= idx + opar + cpar + colon + typex + ocur + expr + ccur, lambda h,s: FuncDeclarationNode(s[1], [], s[5], s[7])
+func_def %= idx + opar + param_list + cpar + colon + typex + ocur + not_void_expr_list + ccur, lambda h,s: FuncDeclarationNode(s[1], s[3], s[6], s[8])
+func_def %= idx + opar + cpar + colon + typex + ocur + not_void_expr_list + ccur, lambda h,s: FuncDeclarationNode(s[1], [], s[5], s[7])
 
 param_list %= idx + colon + typex + comma + param_list, lambda h,s: [(s[1], s[3])] + s[5]
 param_list %= idx + colon + typex, lambda h,s: [(s[1], s[3])]
@@ -70,9 +70,11 @@ func_call %= idx + opar + expr_list + cpar, lambda h,s: CallNode(s[1], s[3])
 func_call %= atom + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[3], s[5], s[1])
 func_call %= atom + at + typex + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[5], s[7], s[1], s[3])
 
-expr_list %= expr + comma + expr_list, lambda h,s: [s[1]] + s[3]
-expr_list %= expr, lambda h,s: [s[1]]
+expr_list %= not_void_expr_list, lambda h,s: s[1]
 expr_list %= G.Epsilon, lambda h,s: []
+
+not_void_expr_list %= expr + comma + not_void_expr_list, lambda h,s: [s[1]] + s[3]
+not_void_expr_list %= expr, lambda h,s: [s[1]]
 
 expr %= idx + assign + expr, lambda h,s: AssignNode(s[1], s[3])
 expr %= ifx + expr + then + expr + elsex + expr + fi, lambda h,s: ConditionalNode(s[2], s[4], s[6])
