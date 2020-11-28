@@ -7,11 +7,6 @@ from core.cool_grammar import G
 
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
-        # for k, v in self.__action().items():
-        #     new_key = (k[0], G[k[1]])
-        #     assert type(new_key) != str
-        #     self.action[new_key] = v
-
         self.action = self.__action()
         self.goto = self.__goto()
         print('finished building table')

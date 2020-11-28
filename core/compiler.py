@@ -3,8 +3,9 @@ COOL Compiler
 """
 from .lexer.Scanner_COOL import tokenizer, build_lexer
 from .lexer.lexer import Lexer
-from .parser.pre_parserLR1 import LR1Parser
+from .parser.parser import parse
 from .cool_grammar import G
+from core.semantics.formatter import FormatVisitor
 
 import streamlit as st
 
@@ -15,8 +16,8 @@ LEXER = build_lexer()
 
 def compile(code: str, errors: list = []):
     """
-    Compiles a plain text code and returns "OK" if there is not errors.
-    if not "OK": code errors will be filled on errors param
+    Compiles a plain text code and returns 0 if there is not errors.
+    if not ok returns -1, code errors will be filled on errors param
     """
     if not code:
         return 'OK'
@@ -24,14 +25,19 @@ def compile(code: str, errors: list = []):
     tokens = tokenizer(code, errors, LEXER)
     print('Tokens:', tokens)
 
-    if not errors:  # Not errors while tokenizing
-        st.code(tokens)
-        # Parse
-        print('-' * 10, 'Parsing Phase', '-' * 10)
-        parser = LR1Parser(G, verbose=True)
-        # print('production_dict:', G.production_dict)
-        left_parse = parser(tokens, errors)
+    if errors:
+        return -1
 
-        if not errors:  # Not errors while pharsing
-            print(f'Left Parse: {left_parse}')
-            return 'OK'
+    st.code(tokens)
+    # Parse
+    ast = parse(tokens, errors)
+
+    if ast is None:
+        return -1
+
+    formatter = FormatVisitor()
+
+    tree = formatter.visit(ast)
+
+    st.text(tree)
+    print(tree)

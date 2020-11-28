@@ -18,6 +18,7 @@ class ShiftReduceParser:
         stack = [0]
         cursor = 0
         output = []
+        operations = []
 
         while True:
             state = stack[-1]
@@ -37,6 +38,7 @@ class ShiftReduceParser:
             if action == self.SHIFT:
                 cursor += 1
                 stack += [lookahead, tag]
+                operations.append(ShiftReduceParser.SHIFT)
                 print('SHIFTING ', lookahead, tag)
             # Your code here!!! (Reduce case)
             elif action == self.REDUCE:
@@ -49,6 +51,7 @@ class ShiftReduceParser:
                 state = stack[-1]
                 goto = self.goto[state, left.Name]
                 stack += [left.Name, goto]
+                operations.append(ShiftReduceParser.REDUCE)
                 print('REDUCE ', left, right)
             # Your code here!!! (OK case)
             elif action == self.OK:
@@ -56,7 +59,7 @@ class ShiftReduceParser:
                 assert stack.pop() == self.G.startSymbol.Name, 'Parsing error in OK case'
                 assert len(stack) == 1, 'Error: parsing ended with symbols in stack.'
                 print('OK')
-                return output
+                return output, operations
             # Your code here!!! (Invalid case)
             else:
                 raise Exception('Error: Wrong action.')
