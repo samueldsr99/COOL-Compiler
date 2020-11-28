@@ -11,6 +11,7 @@ Lexical units of COOL
 from .lexer import Lexer
 from cmp.my_tools.regex import EPSILON
 from cmp.utils import Token
+from cmp.pycompiler import EOF
 
 
 digit = '|'.join(str(n) for n in range(0, 10))

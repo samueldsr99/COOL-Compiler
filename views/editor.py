@@ -24,7 +24,7 @@ KEYBINDINGS = [
 
 
 def editor():
-    st.title(':memo: Cool Editor')
+    st.title(':memo: COOL Editor')
 
     code = st_ace(
         language=st.sidebar.selectbox('Language mode', options=LANGUAGES, index=3),

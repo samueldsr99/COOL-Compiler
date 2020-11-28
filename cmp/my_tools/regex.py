@@ -118,7 +118,7 @@ def regex_tokenizer(text, G, skip_whitespaces=True):
         except KeyError:
             actual = Token(char, G['symbol'])
         tokens.append(actual)
-        
+
     tokens.append(Token('$', G.EOF))
     return tokens
 
