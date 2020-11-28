@@ -6,6 +6,7 @@ from .lexer.lexer import Lexer
 from .parser.parser import parse
 from .cool_grammar import G
 from core.semantics.formatter import FormatVisitor
+from core.semantics.collector import TypeCollector
 
 import streamlit as st
 
@@ -39,5 +40,12 @@ def compile(code: str, errors: list = []):
 
     tree = formatter.visit(ast)
 
+    collector = TypeCollector(errors)
+    collector.visit(ast)
+    context = collector.context
+
     st.text(tree)
     print(tree)
+
+    st.text(context)
+    print(context)

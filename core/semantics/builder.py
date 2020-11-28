@@ -1,6 +1,6 @@
 from tools.cool_ast import ProgramNode, ClassDeclarationNode, FuncDeclarationNode, AttrDeclarationNode
 from cmp.semantic import SemanticError, Context, ErrorType
-import tools.errors as error
+import core.semantics.tools.errors as error
 from cmp import visitor
 
 

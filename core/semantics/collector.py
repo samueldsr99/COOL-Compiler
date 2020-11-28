@@ -1,16 +1,17 @@
 from cmp.semantic import Scope, Context
-from tools.cool_ast import ProgramNode, ClassDeclarationNode
+from core.semantics.tools.cool_ast import ProgramNode, ClassDeclarationNode
 from cmp import visitor
+
 
 class TypeCollector(object):
     def __init__(self, errors=[]):
         self.context = None
         self.errors = errors
-    
+
     @visitor.on('node')
     def visit(self, node):
         pass
-    
+
     @visitor.when(ProgramNode)
     def visit(self, node):
         self.context = Context()
@@ -28,7 +29,7 @@ class TypeCollector(object):
         io.set_parent(object_)
         string.set_parent(object_)
         int_.set_parent(object_)
-        bool_.set_parent(object_))
+        bool_.set_parent(object_)
 
         # Default types methods
         object_.define_method('abort', [], [], object_)
@@ -45,8 +46,8 @@ class TypeCollector(object):
         string.define_method('substr', ['i', 'l'], [int_, int_], string)
 
         for declaration in node.declarations:
-            self.visit(declaration)       
-    
+            self.visit(declaration)
+
     @visitor.when(ClassDeclarationNode)
     def visit(self, node):
         try:
