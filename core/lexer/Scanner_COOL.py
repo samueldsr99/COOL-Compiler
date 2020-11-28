@@ -19,7 +19,7 @@ mayus = '|'.join(chr(n) for n in range(ord('A'), ord('Z') + 1))
 letter = lower + '|' + mayus
 symbol = digit + '|' + letter + '|' + '|'.join([
     '<', '>', '=', '+', '-', '/', '%', '~', '!', '@', '_', '$',
-    '?', '.', ':', ';', ',', ' ', '#', '{', '}', '*', '(', ')'
+    '?', '.', ':', ';', ',', ' ', '#', '{', '}', '*', '(', ')', '\''
 ])  # Except: "  \  [  ]  ^
 escaped_symbol = ''
 for i in range(len(symbol)):
@@ -48,7 +48,7 @@ STRING = f'"[{symbol}|{escaped_symbol}|\\"|\\\n]^"'
 SPACE = '[ |\n|\t|\f|\r|\v][ |\n|\t|\f|\r|\v]^'
 TYPE_ID = f'[{mayus}][{letter}|{digit}|_]^'
 OBJECT_ID = f'[[{lower}][{letter}|{digit}|_]^]|[self]'
-COMMENT = f'[--[{symbol}|\\|"]^\n]|[(*[{symbol}|\\|"|\n]^*)]'  # TODO: Check nested comments
+COMMENT = f'[--[{symbol}|\\|"|\t]^\n]|[(*[{symbol}|\\|"|{SPACE}]^*)]'  # TODO: Check nested comments
 
 
 def build_lexer():
