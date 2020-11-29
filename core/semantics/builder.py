@@ -1,5 +1,5 @@
 from core.semantics.tools.cool_ast import ProgramNode, ClassDeclarationNode, FuncDeclarationNode, AttrDeclarationNode
-from cmp.semantic import SemanticError, Context, ErrorType
+from cmp.semantic import SemanticError, Context, ErrorType, Type
 import core.semantics.tools.errors as error
 from cmp import visitor
 
@@ -10,8 +10,8 @@ class TypeBuilder:
     In case of a type error set type to ErrorType.
     """
     def __init__(self, context, errors=[]):
-        self.context = context
-        self.current_type = None
+        self.context: Context = context
+        self.current_type: Type = None
         self.errors = errors
 
     @visitor.on('node')
@@ -57,7 +57,7 @@ class TypeBuilder:
         try:
             ret_type = self.context.get_type(node.return_type)
         except SemanticError as e:
-            param_types.append(ErrorType())
+            ret_type = ErrorType()
             self.errors.append(e.text)
 
         self.current_type.define_method(node.id, param_names, param_types, ret_type)
@@ -66,7 +66,9 @@ class TypeBuilder:
     @visitor.when(AttrDeclarationNode)
     def visit(self, node):
         try:
-            self.current_type.define_attribute(node.id, self.context.get_type(node.type))
+            attr_type = self.context.get_type(node.type)
         except SemanticError as e:
-            self.current_type.define_attribute(node.id, ErrorType())
+            attr_type = ErrorType()
             self.errors.append(e.text)
+        
+        self.current_type.define_attribute(node.id, attr_type)
