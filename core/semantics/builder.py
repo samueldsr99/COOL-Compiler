@@ -1,4 +1,4 @@
-from tools.cool_ast import ProgramNode, ClassDeclarationNode, FuncDeclarationNode, AttrDeclarationNode
+from core.semantics.tools.cool_ast import ProgramNode, ClassDeclarationNode, FuncDeclarationNode, AttrDeclarationNode
 from cmp.semantic import SemanticError, Context, ErrorType
 import core.semantics.tools.errors as error
 from cmp import visitor
@@ -21,7 +21,10 @@ class TypeBuilder:
     @visitor.when(ProgramNode)
     def visit(self, node):
         for declaration in node.declarations:
-            self.visit(declaration)
+            try:
+                self.visit(declaration)
+            except SemanticError as e:
+                self.errors.append(e.text)
 
     @visitor.when(ClassDeclarationNode)
     def visit(self, node):
@@ -29,10 +32,11 @@ class TypeBuilder:
         if node.parent is not None:
             if node.parent in ('SELF_TYPE', 'String', 'Int', 'Bool'):
                 raise SemanticError(error.INVALID_PARENT_TYPE.format(node.id, node.parent))
-        try:
-            self.current_type.set_parent(self.context.get_type(node.parent))
-        except SemanticError as e:
-            self.errors.append(e.text)
+            else:
+                try:
+                    self.current_type.set_parent(self.context.get_type(node.parent))
+                except SemanticError as e:
+                    self.errors.append(e.text)
         else:
             self.current_type.set_parent(self.context.get_type('Object'))
 
