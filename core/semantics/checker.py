@@ -1,7 +1,8 @@
-from cmp.semantic import Context, Method, Type, SemanticError, ErrorType
-import tools.errors as error
-from tools.cool_ast import *
+from cmp.semantic import Context, Method, Type, SemanticError, ErrorType, Scope
+import core.semantics.tools.errors as error
+from core.semantics.tools.cool_ast import *
 from cmp import visitor
+
 
 class TypeChecker:
     def __init__(self, context, errors=[]):
@@ -30,8 +31,8 @@ class TypeChecker:
                 scope.define_variable(attr.name, attr.type)
 
         for feature in node.features:
-            self.visit(feature)
-        
+            self.visit(feature, scope)
+
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, scope):
         # Check attribute override
@@ -40,17 +41,17 @@ class TypeChecker:
             self.errors.append(error.LOCAL_ALREADY_DEFINED % (attr.name, attr_owner.name))
         except SemanticError:
             pass
-        
+
         if node.id == 'self':
             self.errors.append(error.SELF_INVALID_ATTR_ID)
 
         attr_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
-        
+
         if node.expr is not None:
             expr_type = self.visit(node.expr, scope.create_child())
             if not expr_type.conforms_to(attr_type):
                 self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, attr_type))
-        
+
         scope.define_variable(node.id, node.type)
 
     @visitor.when(FuncDeclarationNode)
@@ -63,9 +64,9 @@ class TypeChecker:
                 self.errors.append(error.WRONG_SIGNATURE % (node.id, method_owner))
         except SemanticError:
             pass
-        
+
         scope.define_variable('self', self.current_type)
-        
+
         for name, type_ in zip(self.current_method.param_names, self.current_method.param_types):
             if not scope.is_local(name):
                 if type_.name == 'SELF_TYPE':
@@ -77,7 +78,7 @@ class TypeChecker:
                 self.errors.append(error.LOCAL_ALREADY_DEFINED % (name, self.current_method.name))
 
         ret_type = self.context.get_type(node.return_type) if node.return_type != 'SELF_TYPE' else self.current_type
-    
+
         expr_type = self.visit(node.body, scope)
         if not expr_type.conforms_to(ret_type):
             self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, ret_type))
@@ -98,7 +99,7 @@ class TypeChecker:
             except SemanticError as e:
                 static_type = ErrorType()
                 self.errors.append(e.text)
-            
+
             if scope.is_local(id_):
                 self.errors.append(error.LOCAL_ALREADY_DEFINED % (id_, self.current_method.name))
             else:
@@ -109,7 +110,7 @@ class TypeChecker:
                 self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, static_type))
 
         return self.visit(node.expr, scope.create_child())
-    
+
     @visitor.when(CaseNode)
     def visit(self, node, scope):
         self.visit(node.expr, scope)
@@ -169,7 +170,7 @@ class TypeChecker:
 
         if node.type is not None:
             try:
-                anc_type = self.context.get_type(node.type) 
+                anc_type = self.context.get_type(node.type)
             except SemanticError as e:
                 anc_type = ErrorType()
                 self.errors.append(e.text)
@@ -185,10 +186,10 @@ class TypeChecker:
             for arg in node.args:
                 self.visit(arg, scope)
             return ErrorType()
-        
+
         if len(node.args) != len(method.param_names):
             self.errors.append(error.WRONG_SIGNATURE % (method.name, obj_type.name))
-        
+
         for i, arg in enumerate(node.args):
             arg_type = self.visit(arg, scope)
             if not arg_type.conforms_to(method.param_types[i]):
@@ -203,7 +204,7 @@ class TypeChecker:
             self.errors.append(error.VARIABLE_NOT_DEFINED % (node.lex, self.current_method.name))
             return ErrorType()
         return var.type
-    
+
     @visitor.when(InstantiateNode)
     def visit(self, node, scope):
         try:
@@ -219,7 +220,7 @@ class TypeChecker:
     @visitor.when(StringNode)
     def visit(self, node, scope):
         return self.context.get_type('String')
-    
+
     @visitor.when(BooleanNode)
     def visit(self, node, scope):
         return self.context.get_type('Bool')
@@ -227,27 +228,27 @@ class TypeChecker:
     @visitor.when(PlusNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '+', self.context.get_type('Int'))
-    
+
     @visitor.when(MinusNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '-', self.context.get_type('Int'))
-    
+
     @visitor.when(StarNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '*', self.context.get_type('Int'))
-    
+
     @visitor.when(DivNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '/', self.context.get_type('Int'))
-    
+
     @visitor.when(LessThanNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '<', self.context.get_type('Bool'))
-    
+
     @visitor.when(LessEqualNode)
     def visit(self, node, scope):
         self._check_binary_node(node, scope, '<=', self.context.get_type('Bool'))
-    
+
     @visitor.when(EqualNode)
     def visit(self, node, scope):
         self.visit(node.left, scope)
@@ -258,11 +259,11 @@ class TypeChecker:
     def visit(self, node, scope):
         self.visit(node.expr, scope)
         return self.context.get_type('Bool')
-    
+
     @visitor.when(NegationNode)
     def visit(self, node, scope):
         return self._check_unary_node(node, scope, 'not', self.context.get_type('Bool'))
-    
+
     @visitor.when(ComplementNode)
     def visit(self, node, scope):
         return self._check_unary_node(node, scope, '~', self.context.get_type('Int'))
@@ -275,7 +276,7 @@ class TypeChecker:
         else:
             self.errors.append(error.INVALID_BINARY_OPER % (oper, left_type.name, right_type.name))
             return ErrorType()
-    
+
     def _check_unary_node(self, node, scope, oper, expected_type):
         type_ = self.visit(node.expr, scope)
         if type_ == expected_type:

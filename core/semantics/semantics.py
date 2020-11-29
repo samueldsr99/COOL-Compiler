@@ -1,9 +1,11 @@
 """
 Semantics Pipeline
 """
+import streamlit as st
+
 from core.semantics.collector import TypeCollector
 from core.semantics.builder import TypeBuilder
-import streamlit as st
+from core.semantics.checker import TypeChecker
 
 
 def check_semantics(ast, errors: list):
@@ -14,10 +16,13 @@ def check_semantics(ast, errors: list):
 
     # Build types
     builder = TypeBuilder(context, errors)
-
     builder.visit(ast)
 
-    if errors:
-        return -1
-
     st.text(context)
+
+    # Check Types
+    checker = TypeChecker(context, errors)
+
+    scope = checker.visit(ast)
+
+    st.text(scope.pprint())

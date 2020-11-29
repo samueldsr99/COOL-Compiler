@@ -64,7 +64,7 @@ decl_list %= idx + colon + typex + assign + expr, lambda h,s: [(s[1], s[3], s[5]
 decl_list %= idx + colon + typex, lambda h,s: [(s[1], s[3], None)]
 
 case_list %= idx + colon + typex + case_sign + expr + semi + case_list, lambda h,s: [(s[1], s[3], s[5])] + s[7]
-case_list %= idx + colon + typex + case_sign + expr, lambda h,s: [(s[1], s[3], s[5])]
+case_list %= idx + colon + typex + case_sign + expr + semi, lambda h,s: [(s[1], s[3], s[5])]
 
 func_call %= idx + opar + expr_list + cpar, lambda h,s: CallNode(s[1], s[3])
 func_call %= atom + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[3], s[5], s[1])

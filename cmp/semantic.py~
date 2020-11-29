@@ -67,15 +67,14 @@ class Type:
         else:
             raise SemanticError(f'Attribute "{name}" is already defined in {self.name}.')
 
-    def get_method(self, name:str, get_owner=False):
+    def get_method(self, name:str):
         try:
-            meth =  next(method for method in self.methods if method.name == name)
-            return meth if not get_owner else (meth, self)
+            return next(method for method in self.methods if method.name == name)
         except StopIteration:
             if self.parent is None:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
             try:
-                return self.parent.get_method(name, get_owner)
+                return self.parent.get_method(name)
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
@@ -99,23 +98,8 @@ class Type:
             plain[method.name] = (method, self)
         return plain.values() if clean else plain
 
-    def get_ancestors(self):
-        if self.parent is None:
-            return [self]
-        else:
-            return [self] + self.parent.get_ancestors()
-
     def conforms_to(self, other):
         return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
-
-    def join(self, type_):
-        ancestors = self.get_ancestors()
-        current = type_
-        while current is not None:
-            if current in ancestors:
-                break
-            current = current.parent
-        return current
 
     def bypass(self):
         return False
@@ -191,10 +175,15 @@ class Context:
     def __repr__(self):
         return str(self)
 
+
 class VariableInfo:
     def __init__(self, name, vtype):
         self.name = name
         self.type = vtype
+
+    def __str__(self):
+        return f'{self.name}: {self.type}'
+
 
 class Scope:
     def __init__(self, parent=None):
@@ -228,3 +217,11 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+    def pprint(self, depth=0):
+        for v in self.locals:
+            print('\t' * depth + str(v))
+
+        if self.children:
+            for child in self.children:
+                child.pprint(depth + 1)
