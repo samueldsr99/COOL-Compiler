@@ -22,14 +22,14 @@ def check_semantics(ast, errors: list):
     builder = TypeBuilder(context, errors)
     builder.visit(ast)
 
-    st.text(context)
+    # st.text(context)
 
     # Check Types
     checker = TypeChecker(context, errors)
 
     scope = checker.visit(ast)
 
-    formatter = FormatVisitor()
-    output = formatter.visit(ast)
+    # formatter = FormatVisitor()
+    # output = formatter.visit(ast)
 
-    st.text(output)
+    # st.text(output)

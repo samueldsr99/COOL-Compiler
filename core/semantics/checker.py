@@ -31,7 +31,10 @@ class TypeChecker:
                 scope.define_variable(attr.name, attr.type)
 
         for feature in node.features:
-            self.visit(feature, scope)
+            if isinstance(feature, AttrDeclarationNode):
+                self.visit(feature, scope)
+            elif isinstance(feature, FuncDeclarationNode):
+                self.visit(feature, scope.create_child())
 
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, scope):
@@ -50,9 +53,9 @@ class TypeChecker:
         if node.expr is not None:
             expr_type = self.visit(node.expr, scope.create_child())
             if not expr_type.conforms_to(attr_type):
-                self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, attr_type))
+                self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type.name, attr_type.name))
 
-        scope.define_variable(node.id, node.type)
+        scope.define_variable(node.id, attr_type)
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, scope):
@@ -81,14 +84,14 @@ class TypeChecker:
 
         expr_type = self.visit(node.body, scope)
         if not expr_type.conforms_to(ret_type):
-            self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, ret_type))
+            self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type.name, ret_type.name))
 
     @visitor.when(BlockNode)
     def visit(self, node, scope):
         child_scope = scope.create_child()
         ret_type = ErrorType()
         for expr in node.expressions:
-            ret_type - self.visit(sexpr, child_scope)
+            ret_type = self.visit(expr, child_scope)
         return ret_type
 
     @visitor.when(LetNode)
@@ -107,7 +110,7 @@ class TypeChecker:
 
             expr_type = self.visit(expr, scope.create_child()) if expr is not None else None
             if expr_type is not None and not expr_type.conforms_to(static_type):
-                self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type, static_type))
+                self.errors.append(error.INCOMPATIBLE_TYPES % (expr_type.name, static_type.name))
 
         return self.visit(node.expr, scope.create_child())
 
@@ -227,32 +230,74 @@ class TypeChecker:
 
     @visitor.when(PlusNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '+', self.context.get_type('Int'))
+        try:
+            ret_type = self.context.get_type('Int')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '+', ret_type)
 
     @visitor.when(MinusNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '-', self.context.get_type('Int'))
+        try:
+            ret_type = self.context.get_type('Int')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '-', ret_type)
 
     @visitor.when(StarNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '*', self.context.get_type('Int'))
+        try:
+            ret_type = self.context.get_type('Int')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '*', ret_type)
 
     @visitor.when(DivNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '/', self.context.get_type('Int'))
+        try:
+            ret_type = self.context.get_type('Int')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '/', ret_type)
 
     @visitor.when(LessThanNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '<', self.context.get_type('Bool'))
+        try:
+            ret_type = self.context.get_type('Bool')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '<', ret_type)
 
     @visitor.when(LessEqualNode)
     def visit(self, node, scope):
-        self._check_binary_node(node, scope, '<=', self.context.get_type('Bool'))
+        try:
+            ret_type = self.context.get_type('Bool')
+        except SemanticError as e:
+            ret_type = ErrorType()
+            self.errors.append(e.text)
+
+        return self._check_binary_node(node, scope, '<=', ret_type)
 
     @visitor.when(EqualNode)
-    def visit(self, node, scope):
-        self.visit(node.left, scope)
-        self.visit(node.right, scope)
+    def visit(self, node, scope):   # TODO: fix this
+        left_type = self.visit(node.left, scope)
+        right_type = self.visit(node.right, scope)
+        basic_types = (self.context.get_type(type_) for type_ in ('Int', 'String', 'Bool'))
+
+        if left_type in basic_types or right_type in basic_types:
+            if left_type != right_type:
+                self.errors.append(error.INCOMPATIBLE_TYPES % (left_type.name, right_type.name))
+
         return self.context.get_type('Bool')
 
     @visitor.when(IsVoidNode)
@@ -271,7 +316,7 @@ class TypeChecker:
     def _check_binary_node(self, node, scope, oper, ret_type):
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
-        if left_type == right_type == self.context.get_type('Int'):
+        if left_type == right_type == ret_type:
             return ret_type
         else:
             self.errors.append(error.INVALID_BINARY_OPER % (oper, left_type.name, right_type.name))

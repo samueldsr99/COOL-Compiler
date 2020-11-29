@@ -36,6 +36,7 @@ class TypeBuilder:
                 try:
                     self.current_type.set_parent(self.context.get_type(node.parent))
                 except SemanticError as e:
+                    self.current_type.set_parent(ErrorType())
                     self.errors.append(e.text)
         else:
             self.current_type.set_parent(self.context.get_type('Object'))
