@@ -44,10 +44,10 @@ class_def %= classx + typex + ocur + feature_list + ccur + semi, lambda h,s: Cla
 
 feature_list %= attr_def + semi + feature_list, lambda h,s: [s[1]] + s[3]
 feature_list %= func_def + semi + feature_list, lambda h,s: [s[1]] + s[3]
-feature_list %= G.Epsilon, lambda h,s: []
+feature_list %= G.Epsilon, lambda h, s: []
 
 attr_def %= idx + colon + typex + assign + expr, lambda h,s: AttrDeclarationNode(s[1], s[3], s[5])
-attr_def %= idx + colon + typex, lambda h,s: AttrDeclarationNode(s[1], s[3])
+attr_def %= idx + colon + typex, lambda h, s: AttrDeclarationNode(s[1], s[3])
 
 func_def %= idx + opar + param_list + cpar + colon + typex + ocur + not_void_expr_list + ccur, lambda h,s: FuncDeclarationNode(s[1], s[3], s[6], s[8])
 func_def %= idx + opar + cpar + colon + typex + ocur + not_void_expr_list + ccur, lambda h,s: FuncDeclarationNode(s[1], [], s[5], s[7])
@@ -64,7 +64,7 @@ decl_list %= idx + colon + typex + assign + expr, lambda h,s: [(s[1], s[3], s[5]
 decl_list %= idx + colon + typex, lambda h,s: [(s[1], s[3], None)]
 
 case_list %= idx + colon + typex + case_sign + expr + semi + case_list, lambda h,s: [(s[1], s[3], s[5])] + s[7]
-case_list %= idx + colon + typex + case_sign + expr, lambda h,s: [(s[1], s[3], s[5])]
+case_list %= idx + colon + typex + case_sign + expr + semi, lambda h,s: [(s[1], s[3], s[5])]
 
 func_call %= idx + opar + expr_list + cpar, lambda h,s: CallNode(s[1], s[3])
 func_call %= atom + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[3], s[5], s[1])
@@ -102,11 +102,12 @@ factor %= isvoid + factor, lambda h,s: IsVoidNode(s[2])
 factor %= int_comp + factor, lambda h,s: ComplementNode(s[2])
 factor %= atom, lambda h,s: s[1]
 
-atom %= idx, lambda h,s: VariableNode(s[1])
-atom %= intx, lambda h,s: IntegerNode(s[1])
-atom %= string, lambda h,s: StringNode(s[1])
-atom %= true, lambda h,s: BooleanNode(s[1])
-atom %= false, lambda h,s: BooleanNode(s[1])
-atom %= new + typex, lambda h,s: InstantiateNode(s[2])
-atom %= func_call, lambda h,s: s[1]
-atom %= opar + expr + cpar, lambda h,s: s[2]
+atom %= idx, lambda h, s: VariableNode(s[1])
+atom %= intx, lambda h, s: IntegerNode(s[1])
+atom %= string, lambda h, s: StringNode(s[1])
+atom %= true, lambda h, s: BooleanNode(s[1])
+atom %= false, lambda h, s: BooleanNode(s[1])
+atom %= new + typex, lambda h, s: InstantiateNode(s[2])
+atom %= func_call, lambda h, s: s[1]
+atom %= opar + expr + cpar, lambda h, s: s[2]
+# atom %= expr, lambda h, s: s[1]

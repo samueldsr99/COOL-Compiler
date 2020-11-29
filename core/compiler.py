@@ -2,10 +2,9 @@
 COOL Compiler
 """
 from .lexer.Scanner_COOL import tokenizer, build_lexer
-from .lexer.lexer import Lexer
 from .parser.parser import parse
-from .cool_grammar import G
-from core.semantics.formatter import FormatVisitor
+from .semantics.semantics import check_semantics
+
 
 import streamlit as st
 
@@ -35,9 +34,9 @@ def compile(code: str, errors: list = []):
     if ast is None:
         return -1
 
-    formatter = FormatVisitor()
+    # Semantics
 
-    tree = formatter.visit(ast)
+    check_semantics(ast, errors)
 
-    st.text(tree)
-    print(tree)
+    if errors:
+        return -1
