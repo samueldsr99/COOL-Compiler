@@ -12,7 +12,7 @@ from core.semantics.formatter import FormatVisitor
 def check_semantics(ast, errors: list):
     formatter = FormatVisitor()
     print(formatter.visit(ast))
-    
+
     # Collect types
     collector = TypeCollector(errors)
     collector.visit(ast)
@@ -29,4 +29,7 @@ def check_semantics(ast, errors: list):
 
     scope = checker.visit(ast)
 
-    st.text(scope.pprint())
+    formatter = FormatVisitor()
+    output = formatter.visit(ast)
+
+    st.text(output)

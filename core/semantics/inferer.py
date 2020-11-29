@@ -72,3 +72,5 @@ class TypeInferer:
         """
         """
         pass
+        attrib = self.current_type.get_attribute(node.id)
+        scope.define_variable(attrib.name, attrib.type)
