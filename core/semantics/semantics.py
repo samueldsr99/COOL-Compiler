@@ -6,9 +6,13 @@ import streamlit as st
 from core.semantics.collector import TypeCollector
 from core.semantics.builder import TypeBuilder
 from core.semantics.checker import TypeChecker
+from core.semantics.formatter import FormatVisitor
 
 
 def check_semantics(ast, errors: list):
+    formatter = FormatVisitor()
+    print(formatter.visit(ast))
+    
     # Collect types
     collector = TypeCollector(errors)
     collector.visit(ast)
