@@ -122,6 +122,20 @@ class Type:
     def bypass(self):
         return False
 
+    def update_attr_type(self, name: str, new_type):
+        for i, attr in enumerate(self.attributes):
+            self.attributes[i].type = new_type if attr.name == name else attr.type
+
+    def update_function_type_param(self, method: str, name: str, new_type):
+        for i, method_ in enumerate(self.methods):
+            if method == method_:
+                m = i
+                break
+
+        for i, (param_name, param_type) in enumerate(zip(m.param_names, m.param_types)):
+            if name == param_type:
+                m.param_types[i] = new_type
+
     def __str__(self):
         output = f'type {self.name}'
         parent = '' if self.parent is None else f' : {self.parent.name}'
@@ -193,10 +207,17 @@ class Context:
     def __repr__(self):
         return str(self)
 
+
 class VariableInfo:
-    def __init__(self, name, vtype):
+    def __init__(self, name, vtype, node=None):
         self.name = name
         self.type = vtype
+        self.node = node
+        self.node.type = vtype
+
+    def __str__(self):
+        return f'{self.name}: {self.type}'
+
 
 class Scope:
     def __init__(self, parent=None):
@@ -213,8 +234,8 @@ class Scope:
         self.children.append(child)
         return child
 
-    def define_variable(self, vname, vtype):
-        info = VariableInfo(vname, vtype)
+    def define_variable(self, vname, vtype, node=None):
+        info = VariableInfo(vname, vtype, node)
         self.locals.append(info)
         return info
 
@@ -230,3 +251,33 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+    def update_var(self, name: str, new_type: Type, index=None):
+        if index is None:
+            index = 0
+
+        print('Updating scope: ', [local.name for local in self.locals])
+        print('name ', name, 'index:', index)
+        for i in range(index, len(self.locals)):
+            print('current name:', self.locals[i].name)
+            if self.locals[i].name == name:
+                print('found', name, 'node is', self.locals[i].node)
+                self.locals[i].type = new_type
+                if self.locals[i].node is not None:
+                    print(f'Updating type of {self.locals[i].name} from {self.locals[i].type} to {new_type}')
+                    self.locals[i].node.type = new_type
+                    print(f'node type: {self.locals[i].node.type}')
+                return
+
+        if self.parent:
+            print('Updating parent')
+            self.parent.update_var(name, new_type, self.parent.index)
+
+    def __str__(self):
+        s = 'Scope\n'
+        for v in self.locals:
+            s += f'{v.name}: {v.type.name}\n'
+        if self.children:
+            for child in self.children:
+                s += str(child)
+        return s

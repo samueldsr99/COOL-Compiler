@@ -12,7 +12,7 @@ def main():
         'Editor',
     ]
 
-    choice = st.sidebar.selectbox('', options, index=0)
+    choice = st.sidebar.selectbox('', options, index=1)
 
     if choice == options[0]:
         try:
