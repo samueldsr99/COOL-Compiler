@@ -262,12 +262,14 @@ class TypeInferer:
             infered_type = ErrorType()
         
         if method is not None:
+            wrong_signature = False
             if len(node.args) != len(method.param_names):
                 infered_type = ErrorType()
+                wrong_signature = True
             
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, scope)
-                if not arg_type.conforms_to(method.param_types[i]):
+                if not wrong_signature and not arg_type.conforms_to(method.param_types[i]):
                     infered_type = ErrorType()
         
         if method is not None:
