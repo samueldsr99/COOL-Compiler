@@ -1,4 +1,4 @@
-from cmp.semantic import Scope, Context
+from cmp.semantic import Scope, Context, SemanticError
 from core.semantics.tools.cool_ast import ProgramNode, ClassDeclarationNode
 from cmp import visitor
 
@@ -17,6 +17,7 @@ class TypeCollector(object):
         self.context = Context()
 
         # Default types definition
+        self.context.create_type('<error>')
         self.context.create_type('AUTO_TYPE')
         self_ = self.context.create_type('SELF_TYPE')
         object_ = self.context.create_type('Object')

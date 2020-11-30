@@ -26,9 +26,16 @@ class TypeChecker:
     def visit(self, node, scope):
         self.current_type = self.context.get_type(node.id)
 
-        for attr, attr_owner in self.current_type.all_attributes():
-            if attr_owner != self.current_type:
-                scope.define_variable(attr.name, attr.type)
+        ancestor = self.current_type.parent
+        ancestors_visited = []
+        while ancestor is not None and ancestor not in ancestors_visited and ancestor.name != self.current_type.name:
+            ancestors_visited.append(ancestor)
+            ancestor = ancestor.parent
+        if ancestor is not None:
+            self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, ancestor.name))
+            self.current_type.parent = None
+            self.current_type.set_parent(ErrorType())
+
 
         for feature in node.features:
             if isinstance(feature, AttrDeclarationNode):
@@ -40,7 +47,7 @@ class TypeChecker:
     def visit(self, node, scope):
         # Check attribute override
         try:
-            attr, attr_owner = self.current_type.parent.get_attribute(node.id)
+            attr, attr_owner = self.current_type.parent.get_attribute(node.id, self.current_type.name)
             self.errors.append(error.LOCAL_ALREADY_DEFINED % (attr.name, attr_owner.name))
         except SemanticError:
             pass
@@ -48,7 +55,11 @@ class TypeChecker:
         if node.id == 'self':
             self.errors.append(error.SELF_INVALID_ATTR_ID)
 
-        attr_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
+        try:
+            attr_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
+        except SemanticError as e:
+            attr_type = ErrorType()
+            self.errors.append(e.text)
 
         if node.expr is not None:
             expr_type = self.visit(node.expr, scope.create_child())
@@ -64,7 +75,7 @@ class TypeChecker:
         try:
             method, method_owner = self.current_type.parent.get_method(node.id, get_owner=True)
             if method != self.current_method:
-                self.errors.append(error.WRONG_SIGNATURE % (node.id, method_owner))
+                self.errors.append(error.WRONG_SIGNATURE % (node.id, method_owner.name))
         except SemanticError:
             pass
 

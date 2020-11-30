@@ -46,20 +46,22 @@ class Type:
             raise SemanticError(f'Parent type is already set for {self.name}.')
         self.parent = parent
 
-    def get_attribute(self, name:str):
+    def get_attribute(self, name:str, from_class: str = None):
         try:
             return next(attr for attr in self.attributes if attr.name == name)
         except StopIteration:
             if self.parent is None:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
             try:
-                return self.parent.get_attribute(name)
+                if from_class is not None and (self.parent.name == from_class or self.name == from_class):
+                    raise SemanticError(f'Cyclic inheritance in class "{from_class}"')
+                return self.parent.get_attribute(name, from_class)
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, name:str, typex):
+    def define_attribute(self, name:str, typex, from_class: str = None):
         try:
-            self.get_attribute(name)
+            self.get_attribute(name, from_class)
         except SemanticError:
             attribute = Attribute(name, typex)
             self.attributes.append(attribute)
@@ -221,7 +223,7 @@ class Scope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None

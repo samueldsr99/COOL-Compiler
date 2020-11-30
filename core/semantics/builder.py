@@ -30,13 +30,17 @@ class TypeBuilder:
     def visit(self, node):
         self.current_type = self.context.get_type(node.id)
         if node.parent is not None:
-            if node.parent in ('SELF_TYPE', 'String', 'Int', 'Bool'):
-                raise SemanticError(error.INVALID_PARENT_TYPE.format(node.id, node.parent))
+            if node.parent in ('SELF_TYPE', 'String', 'Int', 'Bool', node.id):
+                self.current_type.set_parent(ErrorType())
+                self.errors.append(error.INVALID_PARENT_TYPE % (node.id, node.parent))
             else:
                 try:
-                    self.current_type.set_parent(self.context.get_type(node.parent))
+                    parent_type = self.context.get_type(node.parent)
                 except SemanticError as e:
-                    self.current_type.set_parent(ErrorType())
+                    parent_type = ErrorType()
+                try:
+                    self.current_type.set_parent(parent_type)
+                except SemanticError as e:
                     self.errors.append(e.text)
         else:
             self.current_type.set_parent(self.context.get_type('Object'))
@@ -71,5 +75,5 @@ class TypeBuilder:
         except SemanticError as e:
             attr_type = ErrorType()
             self.errors.append(e.text)
-        
-        self.current_type.define_attribute(node.id, attr_type)
+
+        self.current_type.define_attribute(node.id, attr_type, self.current_type.name)
