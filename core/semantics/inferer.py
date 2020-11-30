@@ -219,7 +219,7 @@ class TypeInferer:
         print('VariableNode')
         if node.lex == 'self':
             node.type = self.current_type.name
-            return node.type
+            return self.current_type
         var = scope.find_variable(node.lex)
 
         if var:
@@ -265,10 +265,15 @@ class TypeInferer:
         if node.obj is None:
             node.obj = VariableNode('self')
         obj_type = self.visit(node.obj, scope)
+        print('***********************************DEBUG***********************************')
+        print('node type: ', node.type)
+        print('node object: ', node.obj, type(node.obj))
+        print('obj type:', obj_type, type(obj_type))
 
         if node.type is not None:
             try:
                 anc_type = self.context.get_type(node.type)
+                print('anc type:', anc_type)
             except SemanticError as e:
                 anc_type = ErrorType()
             if not obj_type.conforms_to(anc_type): # Semantic error in CallNode
@@ -278,21 +283,22 @@ class TypeInferer:
 
         try:
             method = anc_type.get_method(node.id)
+            print('method', method)
         except SemanticError as e:
             method = None
             for arg in node.args:
                 self.visit(arg, scope)
             infered_type = ErrorType()
-        
+
         if method is not None:
             if len(node.args) != len(method.param_names):
                 infered_type = ErrorType()
-            
+
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, scope)
                 if not arg_type.conforms_to(method.param_types[i]):
                     infered_type = ErrorType()
-        
+
         if method is not None:
             if method.return_type == self.AUTO_TYPE:
                 if infered_type is None:
@@ -311,8 +317,14 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.INTEGER
+
         if left == self.INTEGER and right == self.INTEGER:
-            print(f'Infered type {self.INTEGER} for {node.operation}')
+            print(f'Infered type {self.BOOL} for {node.operation}')
             return self.BOOL
 
         print(f'Can not infer type for {node.operation}')
@@ -325,8 +337,14 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.INTEGER
+
         if left == self.INTEGER and right == self.INTEGER:
-            print(f'Infered type {self.INTEGER} for {node.operation}')
+            print(f'Infered type {self.BOOL} for {node.operation}')
             return self.BOOL
 
         print(f'Can not infer type for {node.operation}')
@@ -338,6 +356,12 @@ class TypeInferer:
 
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
+
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.INTEGER
 
         if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.BOOL} for {node.operation}')
@@ -375,6 +399,12 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
         if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
@@ -389,6 +419,12 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
         if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
@@ -402,6 +438,12 @@ class TypeInferer:
 
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
+
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
 
         if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
