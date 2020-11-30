@@ -28,16 +28,22 @@ def check_semantics(ast, errors: list):
     # Infer Types
     st.subheader('Infering types...')
     inferer = TypeInferer(context, errors)
-    scope = inferer.visit(ast)
-    st.text(str(scope))
+    scope, change = inferer.visit(ast)
+    it = 1
+    while change:
+        print('repeating')
+        print(scope, change)
+        scope, change = inferer.visit(ast)
+        it += 1
 
+    print(f'repetitions: {it}')
     # Check Types
     # st.subheader('checking types...')
     # checker = TypeChecker(context, errors)
     #
     # scope = checker.visit(ast, scope)
 
-    # formatter = FormatVisitor()
-    # output = formatter.visit(ast)
+    formatter = FormatVisitor()
+    output = formatter.visit(ast)
 
-    # st.text(output)
+    st.text(output)

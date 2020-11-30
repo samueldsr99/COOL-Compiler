@@ -213,7 +213,8 @@ class VariableInfo:
         self.name = name
         self.type = vtype
         self.node = node
-        self.node.type = vtype
+        if self.node is not None:
+            self.node.type = vtype.name
 
     def __str__(self):
         return f'{self.name}: {self.type}'
@@ -265,9 +266,12 @@ class Scope:
                 self.locals[i].type = new_type
                 if self.locals[i].node is not None:
                     print(f'Updating type of {self.locals[i].name} from {self.locals[i].type} to {new_type}')
-                    self.locals[i].node.type = new_type
-                    print(f'node type: {self.locals[i].node.type}')
-                return
+                    if self.locals[i].node.type.name == 'AUTO_TYPE':
+                        return True
+                    self.locals[i].node.type = new_type.name
+                return False
+
+        return False
 
         if self.parent:
             print('Updating parent')
