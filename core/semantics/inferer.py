@@ -260,7 +260,49 @@ class TypeInferer:
 
     @visitor.when(CallNode)
     def visit(self, node, scope=None, type_inf=None):
-        pass
+        infered_type = None
+
+        if node.obj is None:
+            node.obj = VariableNode('self')
+        obj_type = self.visit(node.obj, scope)
+
+        if node.type is not None:
+            try:
+                anc_type = self.context.get_type(node.type)
+            except SemanticError as e:
+                anc_type = ErrorType()
+            if not obj_type.conforms_to(anc_type): # Semantic error in CallNode
+                infered_type = ErrorType()
+        else:
+            anc_type = obj_type
+
+        try:
+            method = anc_type.get_method(node.id)
+        except SemanticError as e:
+            method = None
+            for arg in node.args:
+                self.visit(arg, scope)
+            infered_type = ErrorType()
+        
+        if method is not None:
+            if len(node.args) != len(method.param_names):
+                infered_type = ErrorType()
+            
+            for i, arg in enumerate(node.args):
+                arg_type = self.visit(arg, scope)
+                if not arg_type.conforms_to(method.param_types[i]):
+                    infered_type = ErrorType()
+        
+        if method is not None:
+            if method.return_type == self.AUTO_TYPE:
+                if infered_type is None:
+                    return self.AUTO_TYPE
+                else:
+                    return infered_type     # Only can be ErrorType -> SemanticError
+            else:
+                return method.return_type
+        else:
+            return infered_type
 
     @visitor.when(LessThanNode)
     def visit(self, node, scope=None, type_inf=None):
