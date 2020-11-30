@@ -24,7 +24,6 @@ def check_semantics(ast, errors: list):
     builder.visit(ast)
 
     st.subheader('building types...')
-    st.text(context)
 
     # Infer Types
     st.subheader('Infering types...')
@@ -38,7 +37,7 @@ def check_semantics(ast, errors: list):
     #
     # scope = checker.visit(ast, scope)
 
-    formatter = FormatVisitor()
-    output = formatter.visit(ast)
+    # formatter = FormatVisitor()
+    # output = formatter.visit(ast)
 
-    st.text(output)
+    # st.text(output)
