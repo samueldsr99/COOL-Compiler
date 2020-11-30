@@ -23,13 +23,13 @@ def check_semantics(ast, errors: list):
     builder = TypeBuilder(context, errors)
     builder.visit(ast)
 
-    st.subheader('building types...')
+    # st.subheader('building types...')
 
     # Infer Types
-    st.subheader('Infering types...')
+    # st.subheader('Infering types...')
     inferer = TypeInferer(context, errors)
     scope = inferer.visit(ast)
-    st.text(str(scope))
+    # st.text(str(scope))
 
     # Check Types
     # st.subheader('checking types...')
