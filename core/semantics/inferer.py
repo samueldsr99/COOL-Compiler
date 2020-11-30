@@ -4,33 +4,10 @@ AUTO_TYPE Inferer
 from cmp.semantic import Context, Method, Type, SemanticError, ErrorType, Scope
 from cmp import visitor
 import core.semantics.tools.errors as error
-from core.semantics.tools.cool_ast import (
-    ProgramNode,
-    ClassDeclarationNode,
-    AttrDeclarationNode,
-    FuncDeclarationNode,
-    BlockNode,
-    LetNode,
-    CaseNode,
-    AssignNode,
-    ConditionalNode,
-    WhileNode,
-    CallNode,
-    PlusNode,
-    MinusNode,
-    StarNode,
-    DivNode,
-    IsVoidNode,
-    InstantiateNode,
-    VariableNode,
-    IntegerNode,
-    StringNode,
-    BooleanNode,
-    LessThanNode,
-    LessEqualNode,
-    EqualNode,
-)
+from core.semantics.tools.cool_ast import *
 
+# if True: the visitor must repeat
+change = False
 
 class TypeInferer:
     def __init__(self, context, errors=[]):
@@ -56,6 +33,9 @@ class TypeInferer:
         Infer all types for each class
         """
         print('ProgramNode')
+        global change
+        change = False
+
         if scope is None:
             scope = Scope()
 
@@ -65,7 +45,7 @@ class TypeInferer:
         for child_class in node.declarations:
             self.visit(child_class, scope.create_child())
 
-        return scope
+        return scope, change
 
     @visitor.when(ClassDeclarationNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -93,6 +73,8 @@ class TypeInferer:
         """
         print('AttrDeclarationNode')
         print(f'type for attribute: {node.type}')
+        global change
+        old_type = node.type
         if node.expr is not None:
             expr_type = self.visit(node.expr, scope)
             print(f'expr_type: {expr_type}')
@@ -101,8 +83,7 @@ class TypeInferer:
 
         if node.expr is not None and attrib.type == self.AUTO_TYPE:
             attrib.type = expr_type
-            node.type = attrib.type
-            print(f'Infered type {expr_type.name} for {node.id}')
+            node.type = attrib.type.name
 
         if node.type == self.AUTO_TYPE:
             self.errors.append(f'Can not infer type for {node.id}')
@@ -110,15 +91,21 @@ class TypeInferer:
         print(f'defining attribute {attrib.name}, type: {attrib.type}')
         scope.define_variable(attrib.name, attrib.type, node)
         print('scope ', scope.locals)
+        if node.type != old_type:
+            change = True
+            print('changed:', old_type, node.type)
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, scope=None, type_inf=None):
         print('FuncDeclarationNode')
+        global change
+        old_type = node.return_type
         method = self.current_type.get_method(node.id)
         self.current_method = method
 
-        for param in node.params:
-            self.visit(param, scope)
+        for id_, type_id in node.params:
+            type_ = self.context.get_type(type_id)
+            scope.define_variable(id_, type_)
 
         ret_type = self.visit(node.body, scope)
         print('body type: ', type(node.body))
@@ -127,7 +114,13 @@ class TypeInferer:
         if method.return_type == self.AUTO_TYPE:
             print('ret_type', ret_type)
             print(f'Infered type {ret_type.name} for {node.id}')
+            change = True
+            method.return_type = ret_type
             node.return_type = ret_type.name
+
+        if node.return_type != old_type:
+            change = True
+            print('changed:', old_type, node.return_type)
 
     @visitor.when(ConditionalNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -173,17 +166,16 @@ class TypeInferer:
     def visit(self, node, scope=None, type_inf=None):
         print('AssignNode')
         print(f'Finding {node.id}')
+        global change
         var = scope.find_variable(node.id)
-        print('scope: ', scope.locals)
-        print('parent scope: ', scope.parent.locals)
         print('var: ', var)
         if var:
             expr_type = self.visit(node.expr, scope)
             print(f'expresion type: {expr_type}')
             if var.type == self.AUTO_TYPE:
+                print('expr', expr_type)
                 print(f'Infered type: {expr_type.name} for {node.id}')
                 var.type = expr_type
-
                 if not scope.is_local(var.name):
                     # if var is not local -> is attribute
                     print(f'updating {var.name} attribute')
@@ -198,18 +190,18 @@ class TypeInferer:
                     )
                 # Update scope
                 print(f'Updating scope')
-                scope.update_var(var.name, var.type)
+                change |= scope.update_var(var.name, var.type)
 
                 return expr_type
             else:
                 if not expr_type.conforms_to(var.type):
                     # Catch type error
-                    self.errors.append(f'Cannot assign {expr_type} to "{var.name}" of type "{var.type}"')
+                    self.errors.append(f'Cannot assign "{expr_type}" to {var.name} of type "{var.type}"')
                     return self.OBJECT
                 else:
                     return var.type
         else:
-            return self.AUTO_TYPE
+            return self.OBJECT
 
     @visitor.when(BlockNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -226,14 +218,45 @@ class TypeInferer:
     def visit(self, node, scope=None, type_inf=None):
         print('VariableNode')
         if node.lex == 'self':
-            node.type = self.current_type
-            return node.type
+            node.type = self.current_type.name
+            return self.current_type
         var = scope.find_variable(node.lex)
 
         if var:
             return var.type
         else:
             return self.AUTO_TYPE
+
+    @visitor.when(CaseNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('CaseNode')
+        self.visit(node.expr, scope)
+        types = []
+        for id_, type_, expr in node.cases:
+            new_scope = scope.create_child()
+            types.append(self.visit(expr, new_scope))
+
+        ret_type = types[0]
+        for type_ in types[1:]:
+            ret_type = ret_type.join(type_)
+        return ret_type
+
+    @visitor.when(LetNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('LetNode')
+        new_scope = scope.create_child()
+        for i, (id_, type_id, expr) in enumerate(node.declarations):
+            print(node.declarations[i])
+            type_ = self.context.get_type(type_id)
+            if type_ == self.AUTO_TYPE:
+                new_type = self.visit(expr)
+                new_scope.define_variable(id_, new_type)
+                node.declarations[i] = (id_, new_type.name, expr)
+            else:
+                new_scope.define_variable(id_, type_id)
+        print('Variables: ', new_scope.locals)
+
+        return self.visit(expr, new_scope)
 
     @visitor.when(CallNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -242,10 +265,15 @@ class TypeInferer:
         if node.obj is None:
             node.obj = VariableNode('self')
         obj_type = self.visit(node.obj, scope)
+        print('***********************************DEBUG***********************************')
+        print('node type: ', node.type)
+        print('node object: ', node.obj, type(node.obj))
+        print('obj type:', obj_type, type(obj_type))
 
         if node.type is not None:
             try:
                 anc_type = self.context.get_type(node.type)
+                print('anc type:', anc_type)
             except SemanticError as e:
                 anc_type = ErrorType()
             if not obj_type.conforms_to(anc_type): # Semantic error in CallNode
@@ -255,23 +283,28 @@ class TypeInferer:
 
         try:
             method = anc_type.get_method(node.id)
+            print('method', method)
         except SemanticError as e:
             method = None
             for arg in node.args:
                 self.visit(arg, scope)
             infered_type = ErrorType()
-        
+
         if method is not None:
             wrong_signature = False
             if len(node.args) != len(method.param_names):
                 infered_type = ErrorType()
+<<<<<<< HEAD
                 wrong_signature = True
             
+=======
+
+>>>>>>> 7fe030a9f8c2050e88ef6d526e6aa863ff84c7dd
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, scope)
                 if not wrong_signature and not arg_type.conforms_to(method.param_types[i]):
                     infered_type = ErrorType()
-        
+
         if method is not None:
             if method.return_type == self.AUTO_TYPE:
                 if infered_type is None:
@@ -290,12 +323,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
-            print(f'Infered type {self.INTEGER} for {node.operation}')
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
             return self.INTEGER
 
+        if left == self.INTEGER and right == self.INTEGER:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.BOOL
+
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(LessEqualNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -304,12 +343,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
-            print(f'Infered type {self.INTEGER} for {node.operation}')
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
             return self.INTEGER
 
+        if left == self.INTEGER and right == self.INTEGER:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.BOOL
+
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(EqualNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -318,12 +363,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
-            print(f'Infered type {self.INTEGER} for {node.operation}')
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.BOOL} for {node.operation}')
             return self.INTEGER
 
+        if left == self.INTEGER and right == self.INTEGER:
+            print(f'Infered type {self.BOOL} for {node.operation}')
+            return self.BOOL
+
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(PlusNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -331,12 +382,21 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
+        if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
 
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        print('left ', node.left)
+        print('right ', node.right)
+        print(f'types: {types}')
+        return self.OBJECT
 
     @visitor.when(MinusNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -345,12 +405,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
+        if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
 
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(StarNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -359,12 +425,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
+        if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
 
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(DivNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -373,12 +445,18 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
-        if left.conforms_to(self.INTEGER) and right.conforms_to(self.INTEGER):
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
+        if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
 
         print(f'Can not infer type for {node.operation}')
-        return self.AUTO_TYPE
+        return self.OBJECT
 
     @visitor.when(IntegerNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -394,3 +472,27 @@ class TypeInferer:
     def visit(self, node, scope=None, type_inf=None):
         print('BooleanNode')
         return self.BOOL
+
+    @visitor.when(InstantiateNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('InstantiateNode')
+        try:
+            type = self.context.get_type(node.lex)
+        except KeyError:
+            pass
+
+        return type
+
+    @visitor.when(ComplementNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('ComplementNode')
+        type = self.visit(node.expr)
+
+        return type
+
+    @visitor.when(NegationNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('NegationNode')
+        type = self.visit(node.expr, scope)
+
+        return type
