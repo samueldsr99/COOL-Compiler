@@ -71,7 +71,7 @@ func_call %= atom + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[
 func_call %= atom + at + typex + dot + idx + opar + expr_list + cpar, lambda h,s: CallNode(s[5], s[7], s[1], s[3])
 
 expr_list %= expr + comma + expr_list, lambda h,s: [s[1]] + s[3]
-expr_list %= expr, lambda h, s: s[1]
+expr_list %= expr, lambda h, s: [s[1]]
 expr_list %= G.Epsilon, lambda h,s: []
 
 expr %= idx + assign + expr, lambda h,s: AssignNode(s[1], s[3])

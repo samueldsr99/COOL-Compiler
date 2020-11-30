@@ -70,5 +70,5 @@ class TypeBuilder:
         except SemanticError as e:
             attr_type = ErrorType()
             self.errors.append(e.text)
-        
+
         self.current_type.define_attribute(node.id, attr_type)
