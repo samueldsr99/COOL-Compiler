@@ -1,7 +1,5 @@
 from cmp.tools.parsing import metodo_predictivo_no_recursivo
-""" import no permitido """
-from cmp.tools.evaluation import evaluate_parse
-""""""""""""""""""""""""""
+from cmp.evaluation import evaluate
 from .automata import NFA, DFA, nfa_to_dfa
 from .automata import automata_union, automata_concatenation, automata_closure, automata_minimization
 from cmp.pycompiler import Grammar
@@ -11,7 +9,7 @@ from cmp.utils import Token
 class Node:
     def evaluate(self):
         raise NotImplementedError()
-        
+
 class AtomicNode(Node):
     def __init__(self, lex):
         self.lex = lex
@@ -19,25 +17,25 @@ class AtomicNode(Node):
 class UnaryNode(Node):
     def __init__(self, node):
         self.node = node
-        
+
     def evaluate(self):
-        value = self.node.evaluate() 
+        value = self.node.evaluate()
         return self.operate(value)
-    
+
     @staticmethod
     def operate(value):
         raise NotImplementedError()
-        
+
 class BinaryNode(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
-        
+
     def evaluate(self):
-        lvalue = self.left.evaluate() 
+        lvalue = self.left.evaluate()
         rvalue = self.right.evaluate()
         return self.operate(lvalue, rvalue)
-    
+
     @staticmethod
     def operate(lvalue, rvalue):
         raise NotImplementedError()
@@ -135,7 +133,7 @@ class Regex:
         tokens = regex_tokenizer(regex, G, skip_whitespaces=skip_whitespaces)
         parser = metodo_predictivo_no_recursivo(G)
         left_parse = parser(tokens)
-        ast = evaluate_parse(left_parse, tokens)
+        ast = evaluate(left_parse, tokens)
         dfa = nfa_to_dfa(ast.evaluate())
         return automata_minimization(dfa)
 

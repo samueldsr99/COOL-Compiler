@@ -1,6 +1,36 @@
 from cmp.pycompiler import EOF
 from cmp.tools.parsing import ShiftReduceParser
 
+
+def evaluate(productions: [], tokens: []):
+    def eval_prod(prod, left_parse, tokens, inherited_value=None):
+        body = prod.Right
+        attrs = prod.attributes
+
+        synteticed = [None] * (len(body) + 1)
+        inherited = [None] * (len(body) + 1)
+        inherited[0] = inherited_value
+
+        for i, symbol in enumerate(body, 1):
+            if symbol.IsTerminal and not symbol.IsEpsilon:
+                synteticed[i] = next(tokens).lex
+            elif symbol.IsNonTerminal:
+                next_prod = next(left_parse)
+                rule = attrs[i]
+                if rule:
+                    inherited[i] = rule(inherited, synteticed)
+                synteticed[i] = eval_prod(next_prod, left_parse, tokens, inherited[i])
+
+        rule = attrs[0]
+        return rule(inherited, synteticed) if rule else None
+
+    tokens_ = iter(tokens)
+    prod = iter(productions)
+    root = eval_prod(next(prod), prod, tokens_)
+
+    return root
+
+
 def evaluate_reverse_parse(right_parse, operations, tokens):
     print(tokens[-1].token_type, tokens[-1], type(EOF), EOF)
     if not right_parse or not operations or not tokens:

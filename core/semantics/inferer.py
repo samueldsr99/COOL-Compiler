@@ -310,11 +310,20 @@ class TypeInferer:
         left = self.visit(node.left, scope, self.INTEGER)
         right = self.visit(node.right, scope, self.INTEGER)
 
+        types = [left, right]
+
+        if self.AUTO_TYPE in types and self.INTEGER in types:
+            print(f'Infered type {self.INTEGER} for {node.operation}')
+            return self.INTEGER
+
         if left == self.INTEGER and right == self.INTEGER:
             print(f'Infered type {self.INTEGER} for {node.operation}')
             return self.INTEGER
 
         print(f'Can not infer type for {node.operation}')
+        print('left ', node.left)
+        print('right ', node.right)
+        print(f'types: {types}')
         return self.OBJECT
 
     @visitor.when(MinusNode)
