@@ -26,17 +26,6 @@ class TypeChecker:
     def visit(self, node, scope):
         self.current_type = self.context.get_type(node.id)
 
-        ancestor = self.current_type.parent
-        ancestors_visited = []
-        while ancestor is not None and ancestor not in ancestors_visited and ancestor.name != self.current_type.name:
-            ancestors_visited.append(ancestor)
-            ancestor = ancestor.parent
-        if ancestor is not None:
-            self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, ancestor.name))
-            self.current_type.parent = None
-            self.current_type.set_parent(ErrorType())
-
-
         for feature in node.features:
             if isinstance(feature, AttrDeclarationNode):
                 self.visit(feature, scope)

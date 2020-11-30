@@ -8,6 +8,7 @@ from core.semantics.builder import TypeBuilder
 from core.semantics.checker import TypeChecker
 from core.semantics.inferer import TypeInferer
 from core.semantics.formatter import FormatVisitor
+from core.semantics.consistence import TypeConsistence
 
 
 def check_semantics(ast, errors: list):
@@ -22,6 +23,10 @@ def check_semantics(ast, errors: list):
     # Build types
     builder = TypeBuilder(context, errors)
     builder.visit(ast)
+
+    # Checks for cycles in ingeritance
+    cons_checker = TypeConsistence(context, errors)
+    cons_checker.visit(ast)
 
     # st.subheader('building types...')
 

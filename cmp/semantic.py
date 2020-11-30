@@ -213,7 +213,8 @@ class VariableInfo:
         self.name = name
         self.type = vtype
         self.node = node
-        self.node.type = vtype
+        if self.node is not None:
+            self.node.type = vtype
 
     def __str__(self):
         return f'{self.name}: {self.type}'
