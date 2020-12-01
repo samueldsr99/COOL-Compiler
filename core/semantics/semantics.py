@@ -24,7 +24,7 @@ def check_semantics(ast, errors: list):
     builder = TypeBuilder(context, errors)
     builder.visit(ast)
 
-    # Checks for cycles in ingeritance
+    # Checks for cycles in inheritance
     cons_checker = TypeConsistence(context, errors)
     cons_checker.visit(ast)
 
@@ -45,9 +45,9 @@ def check_semantics(ast, errors: list):
     print(f'repetitions: {it}')
     # Check Types
     # st.subheader('checking types...')
-    # checker = TypeChecker(context, errors)
+    checker = TypeChecker(context, errors)
     #
-    # scope = checker.visit(ast, scope)
+    scope = checker.visit(ast, scope)
 
     formatter = FormatVisitor()
     output = formatter.visit(ast)

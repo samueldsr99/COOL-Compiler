@@ -294,12 +294,8 @@ class TypeInferer:
             wrong_signature = False
             if len(node.args) != len(method.param_names):
                 infered_type = ErrorType()
-<<<<<<< HEAD
                 wrong_signature = True
             
-=======
-
->>>>>>> 7fe030a9f8c2050e88ef6d526e6aa863ff84c7dd
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, scope)
                 if not wrong_signature and not arg_type.conforms_to(method.param_types[i]):
