@@ -192,6 +192,7 @@ class TypeInferer:
                     )
                 # Update scope
                 print(f'Updating scope')
+                print('scope: ', scope.locals, scope.parent.locals, scope.parent.parent.locals)
                 change |= scope.update_var(var.name, var.type)
 
                 return expr_type
