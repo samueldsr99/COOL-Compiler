@@ -24,7 +24,7 @@ def check_semantics(ast, errors: list):
     builder = TypeBuilder(context, errors)
     builder.visit(ast)
 
-    # Checks for cycles in ingeritance
+    # Checks for cycles in inheritance
     cons_checker = TypeConsistence(context, errors)
     cons_checker.visit(ast)
 
