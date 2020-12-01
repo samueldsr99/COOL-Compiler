@@ -217,3 +217,5 @@ class Main {
 #### Limitaciones
 
 Debido a algunas limitaciones de la definición de la gramática, no es posible deducir el argumento de la declaración de funciones, por tanto se recomienda especificar el tipo de estos argumentos para deducir los tipos dependientes de este.
+
+El Lexer implementado no es capaz de reconocer de forma correcta más de un comentario de la forma **(\*\<texto de comentario\>\*)** en el código. El motivo de esto es que esta implemenetado el mecanismo de reconocimiento de tokens con un autómata finito determinista y eset tipo de procesamiento requiere un sistema con memoria, como puede ser un autómata de pila.

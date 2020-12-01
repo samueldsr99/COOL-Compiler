@@ -36,6 +36,6 @@ class TypeConsistence:
                 ancestors_visited.append(ancestor)
                 ancestor = ancestor.parent
             if ancestor is not None and ancestor != error_name:
-                self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, self.current_type.parent.name) + 'asdasd')
+                self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, self.current_type.parent.name))
                 self.current_type.parent = None
                 self.current_type.set_parent(ErrorType())
