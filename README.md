@@ -10,6 +10,7 @@
   - Introducción.
   * Requerimientos.
   * Instalación.
+  * Ejecución.
   * Uso.
   * Detalles de la implementación.
   * Limitaciones.
@@ -97,6 +98,14 @@ Las librerías se pueden instalar automáticamente de la siguiente manera
 
 ```bash
 pip install -r requirements.txt
+```
+
+#### Ejecución
+
+Para iniciar el servidor correr el siguiente comando
+
+```bash
+streamlit run index.py
 ```
 
 #### Uso
