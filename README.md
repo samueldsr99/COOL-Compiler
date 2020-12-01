@@ -124,10 +124,7 @@ Por ejemplo, una operación de suma se infiere a ser de tipo `Int`
 ```typescript
 class Main {
   suma(x: Int, y: Int): AUTO_TYPE {
-    {
-      z <- x + y;
-      z;
-    }
+    x + y
   };
 };
 ```
@@ -216,4 +213,4 @@ class Main {
 
 #### Limitaciones
 
-Debido a algunas limitaciones de la definición de la gramática, no es posible deducir el argumento de la declaración de funciones, por tanto se recomienda especificar el tipo de estos argumentos para deducir los tipos dependientes de este.
+Debido a algunas limitaciones de la definición de la gramática, no es posible deducir los argumentos en la declaración de funciones, por tanto se recomienda especificar el tipo de estos argumentos para deducir los tipos dependientes de este.
