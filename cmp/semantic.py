@@ -201,6 +201,9 @@ class Context:
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
 
+    def set_type(self, name:str, type):
+        self.types[name] = type
+
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
 
