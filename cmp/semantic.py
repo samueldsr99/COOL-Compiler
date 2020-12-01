@@ -269,16 +269,17 @@ class Scope:
                 self.locals[i].type = new_type
                 if self.locals[i].node is not None:
                     print(f'Updating type of {self.locals[i].name} from {self.locals[i].type} to {new_type}')
-                    if self.locals[i].node.type.name == 'AUTO_TYPE':
-                        return True
                     self.locals[i].node.type = new_type.name
+                    if self.locals[i].node.type == 'AUTO_TYPE':
+                        return True
                 return False
 
-        return False
 
         if self.parent:
             print('Updating parent')
             self.parent.update_var(name, new_type, self.parent.index)
+
+        return False
 
     def __str__(self):
         s = 'Scope\n'

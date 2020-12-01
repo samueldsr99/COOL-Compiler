@@ -10,6 +10,7 @@
   - Introducción.
   * Requerimientos.
   * Instalación.
+  * Ejecución.
   * Uso.
   * Detalles de la implementación.
   * Limitaciones.
@@ -99,6 +100,14 @@ Las librerías se pueden instalar automáticamente de la siguiente manera
 pip install -r requirements.txt
 ```
 
+#### Ejecución
+
+Para iniciar el servidor correr el siguiente comando
+
+```bash
+streamlit run index.py
+```
+
 #### Uso
 
 Para profundizar en la gramática de COOL puede encontrar la documentación [aquí](data/cool-manual.pdf)
@@ -124,10 +133,7 @@ Por ejemplo, una operación de suma se infiere a ser de tipo `Int`
 ```typescript
 class Main {
   suma(x: Int, y: Int): AUTO_TYPE {
-    {
-      z <- x + y;
-      z;
-    }
+    x + y
   };
 };
 ```
@@ -218,4 +224,4 @@ class Main {
 
 Debido a algunas limitaciones de la definición de la gramática, no es posible deducir el argumento de la declaración de funciones, por tanto se recomienda especificar el tipo de estos argumentos para deducir los tipos dependientes de este.
 
-El Lexer implementado no es capaz de reconocer de forma correcta más de un comentario de la forma **(\*\<texto de comentario\>\*)** en el código. El motivo de esto es que esta implemenetado el mecanismo de reconocimiento de tokens con un autómata finito determinista y eset tipo de procesamiento requiere un sistema con memoria, como puede ser un autómata de pila.
+El Lexer implementado no es capaz de reconocer de forma correcta más de un comentario de la forma **(\*\<texto de comentario\>\*)** en el código. El motivo de esto es que esta implemenetado el mecanismo de reconocimiento de tokens con un autómata finito determinista y este tipo de procesamiento requiere un sistema con memoria, como puede ser un autómata de pila.
