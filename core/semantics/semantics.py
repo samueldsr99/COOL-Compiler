@@ -28,25 +28,30 @@ def check_semantics(ast, errors: list):
     cons_checker = TypeConsistence(context, errors)
     cons_checker.visit(ast)
 
-    # st.subheader('building types...')
-
     # Infer Types
-    # st.subheader('Infering types...')
     inferer = TypeInferer(context, errors)
 
     scope, change = inferer.visit(ast)
     it = 1
     while change:
         print('repeating')
-        print(scope, change)
+        print(change)
         scope, change = inferer.visit(ast)
         it += 1
 
+    print('context', context)
+
     print(f'repetitions: {it}')
     # Check Types
+<<<<<<< HEAD
     # st.subheader('checking types...')
     checker = TypeChecker(context, errors)
     #
+=======
+    st.subheader('checking types...')
+    checker = TypeChecker(context, errors)
+
+>>>>>>> e78ac0a0b25af7ef2af1ed6c3556c32fd5c1226b
     scope = checker.visit(ast, scope)
 
     formatter = FormatVisitor()

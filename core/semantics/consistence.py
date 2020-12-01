@@ -26,6 +26,7 @@ class TypeConsistence:
         self.current_type = self.context.get_type(node.id)
         error_name = ErrorType().name
 
+<<<<<<< HEAD
         if self.current_type.parent.name != error_name:
             ancestor = self.current_type.parent
             ancestors_visited = []
@@ -39,3 +40,17 @@ class TypeConsistence:
                 self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, self.current_type.parent.name) + 'asdasd')
                 self.current_type.parent = None
                 self.current_type.set_parent(ErrorType())
+=======
+        ancestor = self.current_type.parent
+        ancestors_visited = []
+        while ancestor is not None and ancestor.name != error_name:
+            if ancestor in ancestors_visited or \
+            ancestor.name == self.current_type.name:
+                break
+            ancestors_visited.append(ancestor)
+            ancestor = ancestor.parent
+        if ancestor is not None and ancestor != error_name:
+            self.errors.append(error.INVALID_PARENT_TYPE % (self.current_type.name, self.current_type.parent.name))
+            self.current_type.parent = None
+            self.current_type.set_parent(ErrorType())
+>>>>>>> e78ac0a0b25af7ef2af1ed6c3556c32fd5c1226b

@@ -27,15 +27,15 @@ def editor():
     st.title(':memo: COOL Editor')
 
     code = st_ace(
-        language=st.sidebar.selectbox('Language mode', options=LANGUAGES, index=3),
+        language='typescript',
         theme=st.sidebar.selectbox('Theme', options=THEMES, index=1),
-        keybinding=st.sidebar.selectbox('Keybinding mode', options=KEYBINDINGS, index=3),
+        keybinding=st.sidebar.selectbox('Editor keymaps', options=KEYBINDINGS, index=3),
         font_size=st.sidebar.slider('Font size', 5, 24, 12),
-        tab_size=st.sidebar.slider('Tab size', 1, 8, 4),
+        tab_size=4,
         show_gutter=st.sidebar.checkbox('Show gutter', value=True),
         show_print_margin=st.sidebar.checkbox('Show print margin', value=True),
         wrap=st.sidebar.checkbox('Wrap enabled', value=False),
-        auto_update=st.sidebar.checkbox('Auto update', value=False),
+        auto_update=False,
         key='ace-editor'
     )
 
