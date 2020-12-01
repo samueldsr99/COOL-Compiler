@@ -2,13 +2,17 @@
 
 ## Inferencia de tipos en COOL
 
+## Estudiantes
+* Samuel David Suárez Rodríguez
+* Enmanuel Verdesia Suárez
+
 ### índice
   - Introducción.
   * Requerimientos.
   * Instalación.
   * Uso.
   * Detalles de la implementación.
-  * TODO.
+  * Limitaciones.
 
 #### Introducción
 
@@ -118,7 +122,7 @@ La inferencia de los tipos se realiza siguiendo las reglas de inferencia de tipo
 Por ejemplo, una operación de suma se infiere a ser de tipo `Int`
 
 ```typescript
-class Main{
+class Main {
   suma(x: Int, y: Int): AUTO_TYPE {
     {
       z <- x + y;
@@ -128,6 +132,88 @@ class Main{
 };
 ```
 
+##### Detalles de inferencia
+
+El tipo inferido de las expresiones condicionales se define como el padre común mas bajo del árbol de herencia del lenguaje. Por tanto en expresiones recursivas si una rama de esta es `AUTO_TYPE` por conveniencia el tipo de la condicional será `Object`, esto puede afectar el no poder inferir el tipo de retorno de expresiones recursivas dependientes de condiciones cuando una rama de esta llama a la propia función solamente. Solo se puede inferir el tipo si esta llamada viene asociada con algún operador que permita determinar el tipo de la operación. Ver en ejemplo debajo los tipos de `rec` y `fact`
+
+```typescript
+class Main {
+  rec(n: Int): AUTO_TYPE {
+    if n = 0 then 1 else rec(n - 1) fi
+  };
+  fact(n: Int): AUTO_TYPE {
+    if n = 0 then 1 else n * fact(n - 1) fi
+  };
+};
 ```
 
 ```
+\__FuncDeclarationNode: rec(n:Int) : Object -> <body>
+\__ConditionalNode: if <expr> then <expr> else <expr> fi
+  \__if
+    \__<expr> EqualNode <expr>
+      \__VariableNode: n
+      \__IntegerNode: 0
+  \__then
+    \__IntegerNode: 1
+  \__else
+    \__CallNode: <obj>.rec(<expr>, ..., <expr>)
+      \__VariableNode: self
+      \__<expr> MinusNode <expr>
+        \__VariableNode: n
+        \__IntegerNode: 1
+\__FuncDeclarationNode: fact(n:Int) : Int -> <body>
+\__ConditionalNode: if <expr> then <expr> else <expr> fi
+  \__if
+    \__<expr> EqualNode <expr>
+      \__VariableNode: n
+      \__IntegerNode: 0
+  \__then
+    \__IntegerNode: 1
+  \__else
+    \__<expr> StarNode <expr>
+      \__VariableNode: n
+      \__CallNode: <obj>.fact(<expr>, ..., <expr>)
+        \__VariableNode: self
+        \__<expr> MinusNode <expr>
+          \__VariableNode: n
+          \__IntegerNode: 1
+```
+
+Nuestro algoritmo de inferencia solamente infiere los tipos actuales suponiendo que conoce los tipos dependientes de este, esto conlleva a que en una pasada no siempre sea posible determinar todos los tipos, en los casos en que un `AUTO_TYPE` depende de otro `AUTO_TYPE` y el primero se analice antes que el segundo. Para resolver este problema de dependencias nuestro `inferer` notifica si en la pasada hubo alguna inferencia detectada. Lo que hacemos entonces es repetir el algoritmo hasta que en alguna pasada esto no ocurra en ningún momento.
+
+```typescript
+class Main {
+  x: AUTO_TYPE;
+  y: AUTO_TYPE;
+  z: AUTO_TYPE;
+
+  main(): AUTO_TYPE {
+    {
+      x <- y;
+      y <- z;
+      z <- "Hello";
+    }
+  };
+};
+```
+
+```
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__AttrDeclarationNode: x : String
+    \__AttrDeclarationNode: y : String
+    \__AttrDeclarationNode: z : String
+    \__FuncDeclarationNode: main() : String -> <body>
+      \__BlockNode:
+        \__AssignNode: x <- <expr>
+          \__VariableNode: y
+        \__AssignNode: y <- <expr>
+          \__VariableNode: z
+        \__AssignNode: z <- <expr>
+          \__StringNode: "Hello"
+```
+
+#### Limitaciones
+
+Debido a algunas limitaciones de la definición de la gramática, no es posible deducir el argumento de la declaración de funciones, por tanto se recomienda especificar el tipo de estos argumentos para deducir los tipos dependientes de este.
