@@ -1,5 +1,6 @@
 from cmp.pycompiler import EOF
-from cmp.tools.parsing import ShiftReduceParser
+# from cmp.tools.parsing import ShiftReduceParser
+from core.parser.parserSR import ShiftReduceParser
 
 
 def evaluate(productions: [], tokens: []):
