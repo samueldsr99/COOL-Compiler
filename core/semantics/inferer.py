@@ -104,15 +104,16 @@ class TypeInferer:
         method = self.current_type.get_method(node.id)
         self.current_method = method
 
-        for id_, type_id in node.params:
-            type_ = self.context.get_type(type_id)
-            scope.define_variable(id_, type_)
+        for param_node in node.params:
+            type_ = self.context.get_type(param_node.type)
+
+            scope.define_variable(param_node.id, type_)
 
         ret_type = self.visit(node.body, scope)
         print('body type: ', type(node.body))
 
         print(f'method return type: {method.return_type}')
-        if method.return_type == self.AUTO_TYPE:
+        if method.return_type == self.AUTO_TYPE and ret_type != self.AUTO_TYPE:
             print('ret_type', ret_type)
             print(f'Infered type {ret_type.name} for {node.id}')
             change = True
@@ -174,7 +175,7 @@ class TypeInferer:
         if var:
             expr_type = self.visit(node.expr, scope)
             print(f'expresion type: {expr_type}')
-            if var.type == self.AUTO_TYPE:
+            if var.type == self.AUTO_TYPE and expr_type != self.AUTO_TYPE:
                 print('expr', expr_type)
                 print(f'Infered type: {expr_type.name} for {node.id}')
                 var.type = expr_type
@@ -185,6 +186,7 @@ class TypeInferer:
                 else:
                     # if var is local -> is a function param
                     print(f'updating {var.name} param')
+                    print(var.type, type(var.type))
                     self.current_type.update_function_type_param(
                         self.current_method.name,
                         var.name,
@@ -221,12 +223,33 @@ class TypeInferer:
         if node.lex == 'self':
             node.type = self.current_type.name
             return self.current_type
+
         var = scope.find_variable(node.lex)
+
+        if not var:
+            return self.OBJECT
+
+        if var.type == self.AUTO_TYPE and type_inf is not None:
+            node.type = type_inf.name
+            var.type = type_inf
+
+            if not scope.is_local(var.name):
+                # if var is not local -> is attribute
+                print(f'updating {var.name} attribute')
+                self.current_type.update_attr_type(var.name, var.type)
+            else:
+                # if var is local -> is a function param
+                print(f'updating {var.name} param')
+                print(var.type, type(var.type))
+                self.current_type.update_function_type_param(
+                    self.current_method.name,
+                    var.name,
+                    var.type
+                )
+            return node.type
 
         if var:
             return var.type
-        else:
-            return self.OBJECT
 
     @visitor.when(CaseNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -263,6 +286,7 @@ class TypeInferer:
 
     @visitor.when(CallNode)
     def visit(self, node, scope=None, type_inf=None):
+        print('CallNode')
         infered_type = None
 
         if node.obj is None:
@@ -312,36 +336,50 @@ class TypeInferer:
     @visitor.when(LessThanNode)
     def visit(self, node, scope=None, type_inf=None):
         print('LessThanNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.BOOL
 
     @visitor.when(LessEqualNode)
     def visit(self, node, scope=None, type_inf=None):
         print('LessEqualNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.BOOL
 
     @visitor.when(EqualNode)
     def visit(self, node, scope=None, type_inf=None):
         print('EqualNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.BOOL
 
     @visitor.when(PlusNode)
     def visit(self, node, scope=None, type_inf=None):
         print('PlusNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.INTEGER
 
     @visitor.when(MinusNode)
     def visit(self, node, scope=None, type_inf=None):
         print('MinusNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.INTEGER
 
     @visitor.when(StarNode)
     def visit(self, node, scope=None, type_inf=None):
         print('StarNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.INTEGER
 
     @visitor.when(DivNode)
     def visit(self, node, scope=None, type_inf=None):
         print('DivNode')
+        self.visit(node.left, scope, type_inf=self.INTEGER)
+        self.visit(node.right, scope, type_inf=self.INTEGER)
         return self.INTEGER
 
     @visitor.when(IntegerNode)

@@ -52,7 +52,9 @@ class TypeBuilder:
     def visit(self, node):
         param_names = []
         param_types = []
-        for name, type_ in node.params:
+        for param_node in node.params:
+            name = param_node.id
+            type_ = param_node.type
             param_names.append(name)
             try:
                 param_types.append(self.context.get_type(type_))
@@ -65,7 +67,7 @@ class TypeBuilder:
             ret_type = ErrorType()
             self.errors.append(e.text)
 
-        self.current_type.define_method(node.id, param_names, param_types, ret_type)
+        self.current_type.define_method(node.id, param_names, param_types, ret_type, node.params)
 
 
     @visitor.when(AttrDeclarationNode)

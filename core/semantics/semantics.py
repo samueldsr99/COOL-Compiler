@@ -33,11 +33,26 @@ def check_semantics(ast, errors: list):
 
     scope, change = inferer.visit(ast)
     it = 1
+
+    # DEBUG
+    formatter = FormatVisitor()
+    output = formatter.visit(ast)
+    print(output)
+    input()
+    # /DEBUG
+
     while change:
         print('repeating')
         print(change)
         scope, change = inferer.visit(ast)
         it += 1
+
+        # DEBUG
+        formatter = FormatVisitor()
+        output = formatter.visit(ast)
+        print(output)
+        input()
+        # /DEBUG
 
     print('context', context)
 

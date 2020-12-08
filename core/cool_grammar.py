@@ -52,8 +52,8 @@ attr_def %= idx + colon + typex, lambda h, s: AttrDeclarationNode(s[1], s[3])
 func_def %= idx + opar + param_list + cpar + colon + typex + ocur + expr + ccur, lambda h,s: FuncDeclarationNode(s[1], s[3], s[6], s[8])
 func_def %= idx + opar + cpar + colon + typex + ocur + expr + ccur, lambda h,s: FuncDeclarationNode(s[1], [], s[5], s[7])
 
-param_list %= idx + colon + typex + comma + param_list, lambda h,s: [(s[1], s[3])] + s[5]
-param_list %= idx + colon + typex, lambda h,s: [(s[1], s[3])]
+param_list %= idx + colon + typex + comma + param_list, lambda h,s: [ParamNode(s[1], s[3])] + s[5]
+param_list %= idx + colon + typex, lambda h,s: [ParamNode(s[1], s[3])]
 
 block %= expr + semi + block, lambda h,s: [s[1]] + s[3]
 block %= expr + semi, lambda h,s: [s[1]]

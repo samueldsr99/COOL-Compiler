@@ -38,6 +38,12 @@ class AttrDeclarationNode(DeclarationNode):
         self.expr = expr
 
 
+class ParamNode(DeclarationNode):
+    def __init__(self, idx, typex):
+        self.id = idx
+        self.type = typex
+
+
 class ParenthesisExpr(ExpressionNode):
     def __init__(self, expr):
         self.expr = expr

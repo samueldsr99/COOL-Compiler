@@ -27,7 +27,7 @@ class FormatVisitor(object):
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, tabs=0):
-        params = ', '.join(':'.join(param) for param in node.params)
+        params = ', '.join(f'{param.id}: {param.type}' for param in node.params)
         ans = '  ' * tabs + f'\\__FuncDeclarationNode: {node.id}({params}) : {node.return_type} -> <body>'
         body = self.visit(node.body, tabs + 1)
         return f'{ans}\n{body}'

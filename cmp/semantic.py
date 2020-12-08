@@ -19,10 +19,11 @@ class Attribute:
         return str(self)
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name, param_names, params_types, return_type, nodes=None):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
+        self.nodes = nodes  # Nodes reference
         self.return_type = return_type
 
     def __str__(self):
@@ -81,11 +82,11 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
-    def define_method(self, name:str, param_names:list, param_types:list, return_type):
+    def define_method(self, name:str, param_names:list, param_types:list, return_type, node=None):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Method(name, param_names, param_types, return_type)
+        method = Method(name, param_names, param_types, return_type, node)
         self.methods.append(method)
         return method
 
@@ -128,13 +129,19 @@ class Type:
 
     def update_function_type_param(self, method: str, name: str, new_type):
         for i, method_ in enumerate(self.methods):
-            if method == method_:
+            print(f'Comparing: {method} with {method_.name}. {type(method)} {type(method_.name)}')
+            if method == method_.name:
                 m = i
+                print(f'Found: {m}')
                 break
 
-        for i, (param_name, param_type) in enumerate(zip(m.param_names, m.param_types)):
-            if name == param_type:
-                m.param_types[i] = new_type
+        for i, (param_name, param_type) in enumerate(zip(self.methods[m].param_names, self.methods[m].param_types)):
+            print(f'Finding in m: {i}, {param_name}, {param_type}')
+            if name == param_name:
+                self.methods[m].param_types[i] = new_type
+                self.methods[m].nodes[i].type = new_type.name
+                print(f'param_types of m {self.methods[m].param_types}')
+                print(f'node_type: {self.methods[m].nodes[i].type}')
 
     def __str__(self):
         output = f'type {self.name}'

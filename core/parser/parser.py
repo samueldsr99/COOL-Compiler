@@ -22,7 +22,7 @@ def parse(tokens: list, errors: list) -> int:
 
     right_parse, operations = result
     print(right_parse)
-    
+
     # Build AST
 
     ast = evaluate_reverse_parse(right_parse, operations, tokens)
