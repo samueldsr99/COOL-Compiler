@@ -1,4 +1,5 @@
-from cmp.tools.parsing import metodo_predictivo_no_recursivo
+# from cmp.tools.parsing import metodo_predictivo_no_recursivo
+from core.parser.parserLL1 import metodo_predictivo_no_recursivo
 from cmp.evaluation import evaluate
 from .automata import NFA, DFA, nfa_to_dfa
 from .automata import automata_union, automata_concatenation, automata_closure, automata_minimization
