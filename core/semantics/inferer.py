@@ -43,8 +43,31 @@ class TypeInferer:
         print(f'{len(node.declarations)} declarations: {node.declarations}')
         print(f'{len(scope.children)} declarations: {scope.children}')
 
-        for child_class in node.declarations:
-            self.visit(child_class, scope.create_child())
+        # for child_class in node.declarations:
+        #     self.visit(child_class, scope.create_child())
+
+        # pending will work like a queue
+        pending = [(class_node.id, class_node) for class_node in node.declarations]
+        scopes = {}
+
+        while pending:
+
+            actual = pending.pop(0)
+            type_ = self.context.get_type(actual[0])
+
+            if type_.parent.name not in ('Object', '<error>'):
+                try:
+                    scopes[type_.name] = scopes[type_.parent.name].create_child()
+                    print(f'>>> Visiting {actual[1].id}')
+                    print('#' * 10, 'Scope', '#' * 10)
+                    print(scopes[type_.parent.name])
+                    print('#' * 30)
+                    self.visit(actual[1], scopes[type_.name])
+                except KeyError:  # Parent not visited yet
+                    pending.append(actual)
+            else:
+                scopes[type_.name] = scope.create_child()
+                self.visit(actual[1], scopes[type_.name])
 
         return scope, change
 
