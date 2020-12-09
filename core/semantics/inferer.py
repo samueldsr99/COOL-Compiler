@@ -78,7 +78,7 @@ class TypeInferer:
         """
         print('ClassDeclarationNode')
         self.current_type = self.context.get_type(node.id)
-        print(f'current_type: {self.current_type}')
+        print(f'current_type: {self.current_type.name}')
 
         # visit attributes
         for f in node.features:

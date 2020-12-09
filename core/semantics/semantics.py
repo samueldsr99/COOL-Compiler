@@ -56,10 +56,10 @@ def check_semantics(ast, errors: list):
 
     print(f'repetitions: {it}')
     # Check Types
-    st.subheader('checking types...')
-    checker = TypeChecker(context, errors)
+    # st.subheader('checking types...')
+    # checker = TypeChecker(context, errors)
 
-    scope = checker.visit(ast, scope)
+    # scope = checker.visit(ast, scope)
 
     formatter = FormatVisitor()
     output = formatter.visit(ast)
