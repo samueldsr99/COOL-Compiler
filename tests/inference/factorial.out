@@ -1,0 +1,19 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: fact(x: Int) : Int -> <body>
+      \__ConditionalNode: if <expr> then <expr> else <expr> fi
+        \__if 
+          \__<expr> EqualNode <expr>
+            \__VariableNode: x
+            \__IntegerNode: 0
+        \__then 
+          \__IntegerNode: 1
+        \__else 
+          \__<expr> StarNode <expr>
+            \__VariableNode: x
+            \__CallNode: <obj>.fact(<expr>, ..., <expr>)
+              \__VariableNode: self
+              \__<expr> MinusNode <expr>
+                \__VariableNode: x
+                \__IntegerNode: 1
+

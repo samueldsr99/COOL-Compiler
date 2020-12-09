@@ -1,0 +1,18 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__AttrDeclarationNode: base : Int
+    \__FuncDeclarationNode: f1() : Int -> <body>
+      \__CallNode: <obj>.f2(<expr>, ..., <expr>)
+        \__VariableNode: self
+
+    \__FuncDeclarationNode: f2() : Int -> <body>
+      \__CallNode: <obj>.f3(<expr>, ..., <expr>)
+        \__VariableNode: self
+
+    \__FuncDeclarationNode: f3() : Int -> <body>
+      \__CallNode: <obj>.f4(<expr>, ..., <expr>)
+        \__VariableNode: self
+
+    \__FuncDeclarationNode: f4() : Int -> <body>
+      \__VariableNode: base
+

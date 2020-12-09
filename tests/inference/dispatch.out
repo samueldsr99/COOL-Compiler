@@ -1,0 +1,15 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: infer_int() : Int -> <body>
+      \__CallNode: <obj>.int(<expr>, ..., <expr>)
+        \__InstantiateNode: new A()
+
+    \__FuncDeclarationNode: infer_string() : String -> <body>
+      \__CallNode: <obj>.string(<expr>, ..., <expr>)
+        \__InstantiateNode: new A()
+
+  \__ClassDeclarationNode: class A  { <feature> ... <feature> }
+    \__FuncDeclarationNode: int() : Int -> <body>
+      \__InstantiateNode: new Int()
+    \__FuncDeclarationNode: string() : String -> <body>
+      \__InstantiateNode: new String()

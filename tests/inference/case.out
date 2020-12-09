@@ -1,0 +1,18 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class C  { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class B : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class A : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class Main : IO { <feature> ... <feature> }
+    \__FuncDeclarationNode: func() : C -> <body>
+      \__CaseNode: case <expr> of [<case> ... <case>] esac
+        \__case 
+          \__<expr> PlusNode <expr>
+            \__IntegerNode: 1
+            \__IntegerNode: 1 of
+      \__CaseNode: a : A =>
+            \__InstantiateNode: new A()
+      \__CaseNode: b : B =>
+            \__InstantiateNode: new B()

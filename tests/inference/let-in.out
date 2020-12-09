@@ -1,0 +1,11 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__AttrDeclarationNode: attr : String
+    \__FuncDeclarationNode: func() : Int -> <body>
+      \__LetNode:  let
+       \__VarDeclarationNode: x: String <-
+        \__VariableNode: attr
+        in
+          \__CallNode: <obj>.length(<expr>, ..., <expr>)
+            \__VariableNode: x
+

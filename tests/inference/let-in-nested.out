@@ -1,0 +1,17 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: func() : Int -> <body>
+      \__LetNode:  let
+       \__VarDeclarationNode: x: Int <-
+        \__IntegerNode: 3
+      \__VarDeclarationNode: y: Int <-
+        \__VariableNode: x
+        in
+          \__LetNode:  let
+           \__VarDeclarationNode: v: Int <-
+            \__VariableNode: y
+          \__VarDeclarationNode: w: Int <-
+            \__VariableNode: v
+            in
+              \__VariableNode: v
+

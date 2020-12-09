@@ -1,0 +1,21 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class C  { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class A : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class B : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: func() : C -> <body>
+      \__ConditionalNode: if <expr> then <expr> else <expr> fi
+        \__if 
+          \__<expr> EqualNode <expr>
+            \__<expr> PlusNode <expr>
+              \__IntegerNode: 1
+              \__IntegerNode: 1
+            \__IntegerNode: 7
+        \__then 
+          \__InstantiateNode: new A()
+        \__else 
+          \__InstantiateNode: new B()
+

@@ -9,6 +9,7 @@ from core.semantics.tools.cool_ast import *
 # if True: the visitor must repeat
 change = False
 
+
 class TypeInferer:
     def __init__(self, context, errors=[]):
         self.context = context
@@ -106,7 +107,6 @@ class TypeInferer:
 
         for param_node in node.params:
             type_ = self.context.get_type(param_node.type)
-
             scope.define_variable(param_node.id, type_)
 
         ret_type = self.visit(node.body, scope)
@@ -225,6 +225,11 @@ class TypeInferer:
             return self.current_type
 
         var = scope.find_variable(node.lex)
+        print('scope', scope, type(scope))
+        if scope.parent:
+            print('parent scope', scope.parent, type(scope.parent))
+        if scope.parent.parent:
+            print('parent parent scope', scope.parent.parent)
 
         if not var:
             return self.OBJECT
@@ -248,8 +253,7 @@ class TypeInferer:
                 )
             return node.type
 
-        if var:
-            return var.type
+        return var.type
 
     @visitor.when(CaseNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -297,9 +301,9 @@ class TypeInferer:
             try:
                 anc_type = self.context.get_type(node.type)
             except SemanticError as e:
-                anc_type = ErrorType()
+                anc_type = self.AUTO_TYPE
             if not obj_type.conforms_to(anc_type): # Semantic error in CallNode
-                infered_type = ErrorType()
+                infered_type = self.AUTO_TYPE
         else:
             anc_type = obj_type
 
@@ -309,29 +313,27 @@ class TypeInferer:
             method = None
             for arg in node.args:
                 self.visit(arg, scope)
-            infered_type = ErrorType()
+            infered_type = self.AUTO_TYPE
 
         if method is not None:
             wrong_signature = False
             if len(node.args) != len(method.param_names):
-                infered_type = ErrorType()
+                infered_type = self.AUTO_TYPE
                 wrong_signature = True
-            
+
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, scope)
                 if not wrong_signature and not arg_type.conforms_to(method.param_types[i]):
-                    infered_type = ErrorType()
+                    infered_type = self.AUTO_TYPE
 
         if method is not None:
-            if method.return_type == self.AUTO_TYPE:
-                if infered_type is None:
-                    return self.OBJECT
-                else:
-                    return infered_type     # Only can be ErrorType -> SemanticError
-            else:
+            if method.return_type != self.AUTO_TYPE:
                 return method.return_type
+            else:
+                return self.AUTO_TYPE
         else:
-            return infered_type
+            return infered_type if infered_type is not None \
+                else self.AUTO_TYPE
 
     @visitor.when(LessThanNode)
     def visit(self, node, scope=None, type_inf=None):

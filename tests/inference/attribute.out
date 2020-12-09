@@ -1,0 +1,14 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Point  { <feature> ... <feature> }
+    \__AttrDeclarationNode: x : Int
+    \__AttrDeclarationNode: y : Int
+    \__AttrDeclarationNode: z : Int
+    \__FuncDeclarationNode: init(n: Int, m: Int) : Int -> <body>
+      \__BlockNode:
+        \__AssignNode: z <- <expr>
+          \__VariableNode: x
+        \__AssignNode: x <- <expr>
+          \__VariableNode: n
+        \__AssignNode: y <- <expr>
+          \__VariableNode: m
+
