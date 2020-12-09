@@ -125,7 +125,12 @@ class Type:
 
     def update_attr_type(self, name: str, new_type):
         for i, attr in enumerate(self.attributes):
-            self.attributes[i].type = new_type if attr.name == name else attr.type
+            if attr.name == name:
+                self.attributes[i].type = new_type
+                break
+        else:
+            if self.parent:
+                self.parent.update_attr_type(name, new_type)
 
     def update_function_type_param(self, method: str, name: str, new_type):
         for i, method_ in enumerate(self.methods):
