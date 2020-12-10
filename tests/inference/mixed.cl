@@ -6,7 +6,7 @@ class B inherits C {
     
 };
 
-class A inherits C {
+class A inherits B {
     f(): AUTO_TYPE {
         x
     };

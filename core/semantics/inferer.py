@@ -110,15 +110,11 @@ class TypeInferer:
             node.type = attrib.type.name
             self.context.set_type(node.id, expr_type)
 
-        if node.type == self.AUTO_TYPE:
-            self.errors.append(f'Can not infer type for {node.id}')
-
-        print(f'defining attribute {attrib.name}, type: {attrib.type}')
         scope.define_variable(attrib.name, attrib.type, node)
         print('scope ', scope.locals)
         if node.type != old_type:
             change = True
-            print('changed:', old_type, node.type)
+            print('changed:', node.id, old_type, node.type)
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -130,12 +126,15 @@ class TypeInferer:
 
         for param_node in node.params:
             type_ = self.context.get_type(param_node.type)
-            scope.define_variable(param_node.id, type_)
+            print(f'Defining {param_node.id}, {param_node.type}')
+            scope.define_variable(param_node.id, type_, node=param_node)
+        for param_node in node.params:
+            print(f'param_node: {param_node.id}, {param_node.type}')
 
         ret_type = self.visit(node.body, scope)
         print('body type: ', type(node.body))
 
-        print(f'method return type: {method.return_type}')
+        print(f'method return type: {method.return_type.name}')
         if method.return_type == self.AUTO_TYPE and ret_type != self.AUTO_TYPE:
             print('ret_type', ret_type)
             print(f'Infered type {ret_type.name} for {node.id}')
@@ -154,14 +153,14 @@ class TypeInferer:
         cond_type = self.visit(node.if_expr, scope, type_inf)
         if cond_type == self.AUTO_TYPE:
             self.errors.append(f'Can not infer type of condition')
-            return self.OBJECT
+            return self.AUTO_TYPE
         else:
             true_case = self.visit(node.then_expr, scope, type_inf)
             false_case = self.visit(node.else_expr, scope, type_inf)
             print(f'true_case: {true_case}')
             print(f'false_case: {false_case}')
             if true_case == self.AUTO_TYPE or false_case == self.AUTO_TYPE:
-                return self.OBJECT
+                return self.AUTO_TYPE
             if true_case.conforms_to(false_case):
                 return false_case
             elif false_case.conforms_to(true_case):
@@ -184,9 +183,8 @@ class TypeInferer:
         cond_type = self.visit(node.condition, scope)
         if cond_type == self.AUTO_TYPE:
             self.errors.append(f'Cannot infer type of condition')
-            return self.OBJECT
-        else:
-            return self.OBJECT
+
+        return self.OBJECT
 
     @visitor.when(AssignNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -204,6 +202,7 @@ class TypeInferer:
                 var.type = expr_type
                 if not scope.is_local(var.name):
                     # if var is not local -> is attribute
+                    print(f'scope: {scope.locals}, parent: {scope.parent.locals}')
                     print(f'updating {var.name} attribute')
                     self.current_type.update_attr_type(var.name, var.type)
                 else:
@@ -217,7 +216,6 @@ class TypeInferer:
                     )
                 # Update scope
                 print(f'Updating scope')
-                print('scope: ', scope.locals, scope.parent.locals, scope.parent.parent.locals)
                 change |= scope.update_var(var.name, var.type)
 
                 return expr_type
@@ -227,7 +225,7 @@ class TypeInferer:
                 else:
                     return var.type
         else:
-            return self.OBJECT
+            return self.AUTO_TYPE
 
     @visitor.when(BlockNode)
     def visit(self, node, scope=None, type_inf=None):
@@ -243,28 +241,26 @@ class TypeInferer:
     @visitor.when(VariableNode)
     def visit(self, node, scope=None, type_inf=None):
         print('VariableNode')
+        global change
         if node.lex == 'self':
             node.type = self.current_type.name
             return self.current_type
 
         var = scope.find_variable(node.lex)
-        print('scope', scope, type(scope))
-        if scope.parent:
-            print('parent scope', scope.parent, type(scope.parent))
-        if scope.parent.parent:
-            print('parent parent scope', scope.parent.parent)
 
         if not var:
-            return self.OBJECT
+            return self.AUTO_TYPE
 
         if var.type == self.AUTO_TYPE and type_inf is not None:
             node.type = type_inf.name
-            var.type = type_inf
 
             if not scope.is_local(var.name):
                 # if var is not local -> is attribute
-                print(f'updating {var.name} attribute')
-                self.current_type.update_attr_type(var.name, var.type)
+                print(f'updating {var.name} attribute from {var.type} to {type_inf}')
+                print(f'node.type: {node.type}')
+                var.type = type_inf
+                var.node.type = type_inf.name
+                self.current_type.update_attr_type(var.name, type_inf)
             else:
                 # if var is local -> is a function param
                 print(f'updating {var.name} param')
@@ -274,6 +270,13 @@ class TypeInferer:
                     var.name,
                     var.type
                 )
+            print('scope: ', scope.locals)
+            if scope.parent:
+                print('scope parent: ', scope.parent.locals)
+            if scope.parent.parent:
+                print('scope parent parent:', scope.parent.parent.locals)
+
+            change |= scope.update_var(var.name, var.type)
             return node.type
 
         return var.type
@@ -296,16 +299,31 @@ class TypeInferer:
     def visit(self, node, scope=None, type_inf=None):
         print('LetNode')
         new_scope = scope.create_child()
-        for i, (id_, type_id, expr) in enumerate(node.declarations):
-            print(node.declarations[i])
-            type_ = self.context.get_type(type_id)
-            if type_ == self.AUTO_TYPE:
-                if expr is not None:
-                    new_type = self.visit(expr, new_scope)
-                    new_scope.define_variable(id_, new_type)
-                    node.declarations[i] = (id_, new_type.name, expr)
+        # for i, (id_, type_id, expr) in enumerate(node.declarations):
+        #     print(node.declarations[i])
+        #     type_ = self.context.get_type(type_id)
+        #     if type_ == self.AUTO_TYPE:
+        #         if expr is not None:
+        #             new_type = self.visit(expr, new_scope)
+        #             new_scope.define_variable(id_, new_type)
+        #             node.declarations[i] = (id_, new_type.name, expr)
+        #     else:
+        #         new_scope.define_variable(id_, type_)
+
+        for declaration_node in node.declarations:
+            type_ = self.context.get_type(declaration_node.type)
+            id_ = declaration_node.id
+            expr = declaration_node.expr
+
+            if type_ == self.AUTO_TYPE and expr is not None:
+                new_type = self.visit(expr, new_scope)
+                print(f'Before: {declaration_node.type}')
+                print(new_type, expr)
+                new_scope.define_variable(id_, new_type, declaration_node)
+                print(f'After: {declaration_node.type}')
             else:
-                new_scope.define_variable(id_, type_)
+                new_scope.define_variable(id_, type_, declaration_node)
+
         print('Variables: ', new_scope.locals)
         print('Let Body: ', node.expr)
 
@@ -427,21 +445,22 @@ class TypeInferer:
         print('InstantiateNode')
         try:
             type = self.context.get_type(node.lex)
-        except KeyError:
-            pass
+        except SemanticError:
+            self.errors.append(f'SemanticError: Type {node.lex} does not exist')
+            return self.AUTO_TYPE
 
         return type
 
     @visitor.when(ComplementNode)
     def visit(self, node, scope=None, type_inf=None):
         print('ComplementNode')
-        type = self.visit(node.expr, scope)
+        type = self.visit(node.expr, scope, type_inf=self.INTEGER)
 
         return self.INTEGER
 
     @visitor.when(NegationNode)
     def visit(self, node, scope=None, type_inf=None):
         print('NegationNode')
-        type = self.visit(node.expr, scope)
+        type = self.visit(node.expr, scope, type_inf=self.BOOL)
 
         return self.BOOL

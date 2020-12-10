@@ -1,0 +1,22 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: fib(n: Int) : Int -> <body>
+      \__ConditionalNode: if <expr> then <expr> else <expr> fi
+        \__if 
+          \__<expr> EqualNode <expr>
+            \__VariableNode: n
+            \__IntegerNode: 0
+        \__then 
+          \__IntegerNode: 1
+        \__else 
+          \__<expr> PlusNode <expr>
+            \__CallNode: <obj>.fib(<expr>, ..., <expr>)
+              \__VariableNode: self
+              \__<expr> MinusNode <expr>
+                \__VariableNode: n
+                \__IntegerNode: 1
+            \__CallNode: <obj>.fib(<expr>, ..., <expr>)
+              \__VariableNode: self
+              \__<expr> MinusNode <expr>
+                \__VariableNode: n
+                \__IntegerNode: 2

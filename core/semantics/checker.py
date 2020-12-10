@@ -96,7 +96,10 @@ class TypeChecker:
 
     @visitor.when(LetNode)
     def visit(self, node, scope):
-        for id_, type_, expr in node.declarations:
+        for decl_node in node.declarations:
+            id_ = decl_node.id
+            type_ = decl_node.type
+            expr = decl_node.expr
             try:
                 static_type = self.context.get_type(type_) if type_ != 'SELF_TYPE' else self.current_type
             except SemanticError as e:

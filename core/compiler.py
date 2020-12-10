@@ -36,7 +36,9 @@ def compile(code: str, errors: list = []):
 
     # Semantics
 
-    check_semantics(ast, errors)
+    output = check_semantics(ast, errors)
 
     if errors:
         return -1
+
+    return output

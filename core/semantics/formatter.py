@@ -35,7 +35,10 @@ class FormatVisitor(object):
     @visitor.when(LetNode)
     def visit(self, node, tabs=0):
         declarations = []
-        for _id, _type, _expr in node.declarations:
+        for declaration_node in node.declarations:
+            _id = declaration_node.id
+            _type = declaration_node.type
+            _expr = declaration_node.expr
             if _expr is not None:
                 declarations.append(
                     '  ' * tabs +

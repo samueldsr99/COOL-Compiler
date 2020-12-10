@@ -8,9 +8,10 @@ class SemanticError(Exception):
         return self.args[0]
 
 class Attribute:
-    def __init__(self, name, typex):
+    def __init__(self, name, typex, node=None):
         self.name = name
         self.type = typex
+        self.node = node
 
     def __str__(self):
         return f'[attrib] {self.name} : {self.type.name};'
@@ -60,11 +61,11 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, name:str, typex, from_class: str = None):
+    def define_attribute(self, name:str, typex, from_class: str = None, node=None):
         try:
             self.get_attribute(name, from_class)
         except SemanticError:
-            attribute = Attribute(name, typex)
+            attribute = Attribute(name, typex, node)
             self.attributes.append(attribute)
             return attribute
         else:
@@ -127,10 +128,15 @@ class Type:
         for i, attr in enumerate(self.attributes):
             if attr.name == name:
                 self.attributes[i].type = new_type
-                break
+                if self.attributes[i].node is not None and \
+                        self.attributes[i].node.type != new_type.name:
+                    self.attributes[i].node.type = new_type.name
+                    return True
         else:
             if self.parent:
-                self.parent.update_attr_type(name, new_type)
+                return self.parent.update_attr_type(name, new_type)
+            else:
+                return False
 
     def update_function_type_param(self, method: str, name: str, new_type):
         for i, method_ in enumerate(self.methods):
@@ -144,9 +150,13 @@ class Type:
             print(f'Finding in m: {i}, {param_name}, {param_type}')
             if name == param_name:
                 self.methods[m].param_types[i] = new_type
-                self.methods[m].nodes[i].type = new_type.name
+                if self.methods[m].nodes[i].type != new_type.name:
+                    self.methods[m].nodes[i].type = new_type.name
+                    return True
                 print(f'param_types of m {self.methods[m].param_types}')
                 print(f'node_type: {self.methods[m].nodes[i].type}')
+
+        return False
 
     def __str__(self):
         output = f'type {self.name}'
@@ -279,17 +289,22 @@ class Scope:
             if self.locals[i].name == name:
                 print('found', name, 'node is', self.locals[i].node)
                 self.locals[i].type = new_type
-                if self.locals[i].node is not None:
+                if self.locals[i].node is not None and self.locals[i].node.type != new_type.name:
                     print(f'Updating type of {self.locals[i].name} from {self.locals[i].type} to {new_type}')
+                    print(f'node {self.locals[i].node.id} type: {self.locals[i].node.type} newtype: {new_type.name}')
+                    prev_type = self.locals[i].node.type
                     self.locals[i].node.type = new_type.name
-                    if self.locals[i].node.type == 'AUTO_TYPE':
+                    print(f'now node type is: {self.locals[i].node.type}')
+                    input()
+                    if prev_type == 'AUTO_TYPE':
+                        print('returning true')
                         return True
-                return False
 
-
+        
         if self.parent:
             print('Updating parent')
             self.parent.update_var(name, new_type, self.parent.index)
+        print('no parent scope, finishing')
 
         return False
 
