@@ -234,10 +234,12 @@ class Context:
 
 
 class VariableInfo:
-    def __init__(self, name, vtype, node=None):
+    def __init__(self, name, vtype, node=None, is_attr=False, is_param=False):
         self.name = name
         self.type = vtype
         self.node = node
+        self.is_attr = is_attr
+        self.is_param = is_param
         if self.node is not None:
             self.node.type = vtype.name
 
@@ -260,8 +262,8 @@ class Scope:
         self.children.append(child)
         return child
 
-    def define_variable(self, vname, vtype, node=None):
-        info = VariableInfo(vname, vtype, node)
+    def define_variable(self, vname, vtype, node=None, is_attr=False, is_param=False):
+        info = VariableInfo(vname, vtype, node, is_attr, is_param)
         self.locals.append(info)
         return info
 

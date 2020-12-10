@@ -110,7 +110,7 @@ class TypeInferer:
             node.type = attrib.type.name
             self.context.set_type(node.id, expr_type)
 
-        scope.define_variable(attrib.name, attrib.type, node)
+        scope.define_variable(attrib.name, attrib.type, node, is_attr=True)
         print('scope ', scope.locals)
         if node.type != old_type:
             change = True
@@ -127,7 +127,7 @@ class TypeInferer:
         for param_node in node.params:
             type_ = self.context.get_type(param_node.type)
             print(f'Defining {param_node.id}, {param_node.type}')
-            scope.define_variable(param_node.id, type_, node=param_node)
+            scope.define_variable(param_node.id, type_, node=param_node, is_param=True)
         for param_node in node.params:
             print(f'param_node: {param_node.id}, {param_node.type}')
 
@@ -192,20 +192,21 @@ class TypeInferer:
         print(f'Finding {node.id}')
         global change
         var = scope.find_variable(node.id)
-        print('var: ', var)
+
         if var:
             expr_type = self.visit(node.expr, scope)
             print(f'expresion type: {expr_type}')
             if var.type == self.AUTO_TYPE and expr_type != self.AUTO_TYPE:
+                change = True
                 print('expr', expr_type)
                 print(f'Infered type: {expr_type.name} for {node.id}')
                 var.type = expr_type
-                if not scope.is_local(var.name):
+                if var.is_attr:
                     # if var is not local -> is attribute
                     print(f'scope: {scope.locals}, parent: {scope.parent.locals}')
                     print(f'updating {var.name} attribute')
                     self.current_type.update_attr_type(var.name, var.type)
-                else:
+                elif var.is_param:
                     # if var is local -> is a function param
                     print(f'updating {var.name} param')
                     print(var.type, type(var.type))
@@ -214,9 +215,10 @@ class TypeInferer:
                         var.name,
                         var.type
                     )
-                # Update scope
-                print(f'Updating scope')
-                change |= scope.update_var(var.name, var.type)
+                else:
+                    # Update scope
+                    print(f'Updating scope')
+                    change |= scope.update_var(var.name, var.type)
 
                 return expr_type
             else:
@@ -253,15 +255,16 @@ class TypeInferer:
 
         if var.type == self.AUTO_TYPE and type_inf is not None:
             node.type = type_inf.name
+            change = True
 
-            if not scope.is_local(var.name):
+            if var.is_attr:
                 # if var is not local -> is attribute
                 print(f'updating {var.name} attribute from {var.type} to {type_inf}')
                 print(f'node.type: {node.type}')
                 var.type = type_inf
                 var.node.type = type_inf.name
                 self.current_type.update_attr_type(var.name, type_inf)
-            else:
+            elif var.is_param:
                 # if var is local -> is a function param
                 print(f'updating {var.name} param')
                 print(var.type, type(var.type))
@@ -270,13 +273,9 @@ class TypeInferer:
                     var.name,
                     var.type
                 )
-            print('scope: ', scope.locals)
-            if scope.parent:
-                print('scope parent: ', scope.parent.locals)
-            if scope.parent.parent:
-                print('scope parent parent:', scope.parent.parent.locals)
+            else:
+                change |= scope.update_var(var.name, var.type)
 
-            change |= scope.update_var(var.name, var.type)
             return node.type
 
         return var.type
@@ -299,16 +298,6 @@ class TypeInferer:
     def visit(self, node, scope=None, type_inf=None):
         print('LetNode')
         new_scope = scope.create_child()
-        # for i, (id_, type_id, expr) in enumerate(node.declarations):
-        #     print(node.declarations[i])
-        #     type_ = self.context.get_type(type_id)
-        #     if type_ == self.AUTO_TYPE:
-        #         if expr is not None:
-        #             new_type = self.visit(expr, new_scope)
-        #             new_scope.define_variable(id_, new_type)
-        #             node.declarations[i] = (id_, new_type.name, expr)
-        #     else:
-        #         new_scope.define_variable(id_, type_)
 
         for declaration_node in node.declarations:
             type_ = self.context.get_type(declaration_node.type)
