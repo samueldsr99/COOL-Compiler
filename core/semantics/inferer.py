@@ -201,6 +201,7 @@ class TypeInferer:
                 print('expr', expr_type)
                 print(f'Infered type: {expr_type.name} for {node.id}')
                 var.type = expr_type
+                var.node.type = expr_type.name
                 if var.is_attr:
                     # if var is not local -> is attribute
                     print(f'scope: {scope.locals}, parent: {scope.parent.locals}')
@@ -254,15 +255,15 @@ class TypeInferer:
             return self.AUTO_TYPE
 
         if var.type == self.AUTO_TYPE and type_inf is not None:
-            node.type = type_inf.name
+            var.node.type = type_inf.name
+            print(f'Infered {type_inf} type for {var.name}')
             change = True
 
             if var.is_attr:
                 # if var is not local -> is attribute
                 print(f'updating {var.name} attribute from {var.type} to {type_inf}')
-                print(f'node.type: {node.type}')
+                print(f'node.type: {var.node.type}')
                 var.type = type_inf
-                var.node.type = type_inf.name
                 self.current_type.update_attr_type(var.name, type_inf)
             elif var.is_param:
                 # if var is local -> is a function param
@@ -271,12 +272,12 @@ class TypeInferer:
                 self.current_type.update_function_type_param(
                     self.current_method.name,
                     var.name,
-                    var.type
+                    type_inf
                 )
             else:
                 change |= scope.update_var(var.name, var.type)
 
-            return node.type
+            return var.node.type
 
         return var.type
 

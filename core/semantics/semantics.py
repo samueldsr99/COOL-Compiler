@@ -38,7 +38,6 @@ def check_semantics(ast, errors: list):
     formatter = FormatVisitor()
     output = formatter.visit(ast)
     print(output)
-    input()
     # /DEBUG
 
     while change:
@@ -51,7 +50,6 @@ def check_semantics(ast, errors: list):
         formatter = FormatVisitor()
         output = formatter.visit(ast)
         print(output)
-        input()
         # /DEBUG
 
     print('context', context)

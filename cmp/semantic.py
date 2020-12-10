@@ -149,8 +149,10 @@ class Type:
         for i, (param_name, param_type) in enumerate(zip(self.methods[m].param_names, self.methods[m].param_types)):
             print(f'Finding in m: {i}, {param_name}, {param_type}')
             if name == param_name:
+                print(f'Found param: {name}')
                 self.methods[m].param_types[i] = new_type
                 if self.methods[m].nodes[i].type != new_type.name:
+                    print(f'Updating param {name} from {self.methods[m].nodes[i].type} to {new_type.name}')
                     self.methods[m].nodes[i].type = new_type.name
                     return True
                 print(f'param_types of m {self.methods[m].param_types}')
