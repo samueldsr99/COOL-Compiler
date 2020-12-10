@@ -48,7 +48,7 @@ class TypeInferer:
 
         # pending will work like a queue
         pending = [(class_node.id, class_node) for class_node in node.declarations]
-        scopes = {}
+        scopes = {'IO': scope.create_child()}
 
         while pending:
 

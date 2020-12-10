@@ -1,0 +1,13 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class A : B { <feature> ... <feature> }
+    \__FuncDeclarationNode: set_value(new_value: Int) : Int -> <body>
+      \__AssignNode: x <- <expr>
+        \__VariableNode: new_value
+  \__ClassDeclarationNode: class B : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class C : D { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class D : E { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class E  { <feature> ... <feature> }
+    \__AttrDeclarationNode: x : Int
