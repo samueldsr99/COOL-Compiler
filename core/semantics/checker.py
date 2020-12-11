@@ -17,9 +17,30 @@ class TypeChecker:
 
     @visitor.when(ProgramNode)
     def visit(self, node, scope=None):
-        scope = Scope()
-        for declaration in node.declarations:
-            self.visit(declaration, scope.create_child())
+        if scope is None:
+            scope = Scope()
+
+        # for declaration in node.declarations:
+        #     self.visit(declaration, scope.create_child())
+
+        pending = [(class_node.id, class_node) for class_node in node.declarations]
+        scopes = {'IO': scope.create_child()}
+
+        while pending:
+
+            actual = pending.pop(0)
+            type_ = self.context.get_type(actual[0])
+
+            if type_.parent.name not in ('Object', '<error>'):
+                try:
+                    scopes[type_.name] = scopes[type_.parent.name].create_child()
+                    self.visit(actual[1], scopes[type_.name])
+                except KeyError:  # Parent not visited yet
+                    pending.append(actual)
+            else:
+                scopes[type_.name] = scope.create_child()
+                self.visit(actual[1], scopes[type_.name])
+
         return scope
 
     @visitor.when(ClassDeclarationNode)

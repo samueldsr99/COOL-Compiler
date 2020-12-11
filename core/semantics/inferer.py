@@ -454,3 +454,10 @@ class TypeInferer:
         type = self.visit(node.expr, scope, type_inf=self.BOOL)
 
         return self.BOOL
+
+    @visitor.when(IsVoidNode)
+    def visit(self, node, scope=None, type_inf=None):
+        print('IsVoidNode')
+        self.visit(node.expr, scope)
+
+        return self.BOOL
