@@ -150,13 +150,13 @@ class TypeInferer:
     @visitor.when(ConditionalNode)
     def visit(self, node, scope=None, type_inf=None):
         print('ConditionalNode')
-        cond_type = self.visit(node.if_expr, scope, type_inf)
+        cond_type = self.visit(node.if_expr, scope, self.BOOL)
         if cond_type == self.AUTO_TYPE:
             self.errors.append(f'Can not infer type of condition')
             return self.AUTO_TYPE
         else:
-            true_case = self.visit(node.then_expr, scope, type_inf)
-            false_case = self.visit(node.else_expr, scope, type_inf)
+            true_case = self.visit(node.then_expr, scope)
+            false_case = self.visit(node.else_expr, scope)
             print(f'true_case: {true_case}')
             print(f'false_case: {false_case}')
             if true_case == self.AUTO_TYPE or false_case == self.AUTO_TYPE:
@@ -383,8 +383,29 @@ class TypeInferer:
     @visitor.when(EqualNode)
     def visit(self, node, scope=None, type_inf=None):
         print('EqualNode')
-        self.visit(node.left, scope, type_inf=self.INTEGER)
-        self.visit(node.right, scope, type_inf=self.INTEGER)
+
+        # Collect types of right and left
+        if isinstance(node.left, VariableNode):
+            var_left = scope.find_variable(node.left.lex)
+            left_type = var_left.type if var_left is not None else None
+        else:
+            left_type = self.visit(node.left, scope)
+
+        if isinstance(node.right, VariableNode):
+            var_right = scope.find_variable(node.right.lex)
+            right_type = var_right.type if var_right is not None else None
+        else:
+            right_type = self.visit(node.right, scope)
+
+        # Visit right and/or left if are VariableNodes with types collected
+        if isinstance(node.left, VariableNode):
+            inf_right = right_type if right_type != self.AUTO_TYPE else None
+            self.visit(node.left, scope, type_inf=inf_right)
+
+        if isinstance(node.right, VariableNode):
+            inf_left = left_type if left_type != self.AUTO_TYPE else None
+            self.visit(node.right, scope, type_inf=inf_left)
+
         return self.BOOL
 
     @visitor.when(PlusNode)
