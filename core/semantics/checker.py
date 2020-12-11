@@ -316,10 +316,10 @@ class TypeChecker:
     def visit(self, node, scope):   # TODO: fix this
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
-        basic_types = (self.context.get_type(type_) for type_ in ('Int', 'String', 'Bool'))
+        basic_types = ('Int', 'String', 'Bool')
 
-        if left_type in basic_types or right_type in basic_types:
-            if left_type != right_type:
+        if left_type.name in basic_types or right_type.name in basic_types:
+            if left_type.name != right_type.name:
                 self.errors.append(error.INCOMPATIBLE_TYPES % (left_type.name, right_type.name))
 
         return self.context.get_type('Bool')
