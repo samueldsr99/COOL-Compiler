@@ -17,9 +17,30 @@ class TypeChecker:
 
     @visitor.when(ProgramNode)
     def visit(self, node, scope=None):
-        scope = Scope()
-        for declaration in node.declarations:
-            self.visit(declaration, scope.create_child())
+        if scope is None:
+            scope = Scope()
+
+        # for declaration in node.declarations:
+        #     self.visit(declaration, scope.create_child())
+
+        pending = [(class_node.id, class_node) for class_node in node.declarations]
+        scopes = {'IO': scope.create_child()}
+
+        while pending:
+
+            actual = pending.pop(0)
+            type_ = self.context.get_type(actual[0])
+
+            if type_.parent.name not in ('Object', '<error>'):
+                try:
+                    scopes[type_.name] = scopes[type_.parent.name].create_child()
+                    self.visit(actual[1], scopes[type_.name])
+                except KeyError:  # Parent not visited yet
+                    pending.append(actual)
+            else:
+                scopes[type_.name] = scope.create_child()
+                self.visit(actual[1], scopes[type_.name])
+
         return scope
 
     @visitor.when(ClassDeclarationNode)
@@ -295,10 +316,10 @@ class TypeChecker:
     def visit(self, node, scope):   # TODO: fix this
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
-        basic_types = (self.context.get_type(type_) for type_ in ('Int', 'String', 'Bool'))
+        basic_types = ('Int', 'String', 'Bool')
 
-        if left_type in basic_types or right_type in basic_types:
-            if left_type != right_type:
+        if left_type.name in basic_types or right_type.name in basic_types:
+            if left_type.name != right_type.name:
                 self.errors.append(error.INCOMPATIBLE_TYPES % (left_type.name, right_type.name))
 
         return self.context.get_type('Bool')
