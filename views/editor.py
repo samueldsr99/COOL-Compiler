@@ -46,5 +46,3 @@ def editor():
 
     if errors:
         st.text('\n'.join(error for error in errors))
-    else:
-        st.code(result)

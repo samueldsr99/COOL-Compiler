@@ -38,6 +38,8 @@ def compile(code: str, errors: list = []):
 
     output = check_semantics(ast, errors)
 
+    st.code(output)
+
     if errors:
         return -1
 

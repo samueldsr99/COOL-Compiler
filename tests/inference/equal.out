@@ -1,0 +1,12 @@
+\__ProgramNode [<class> ... <class>]
+  \__ClassDeclarationNode: class C  { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class A : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class B : C { <feature> ... <feature> }
+
+  \__ClassDeclarationNode: class Main  { <feature> ... <feature> }
+    \__FuncDeclarationNode: func(a: C) : Bool -> <body>
+      \__<expr> EqualNode <expr>
+        \__VariableNode: a
+        \__InstantiateNode: new C()

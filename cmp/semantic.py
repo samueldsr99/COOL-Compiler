@@ -299,12 +299,10 @@ class Scope:
                     prev_type = self.locals[i].node.type
                     self.locals[i].node.type = new_type.name
                     print(f'now node type is: {self.locals[i].node.type}')
-                    input()
                     if prev_type == 'AUTO_TYPE':
                         print('returning true')
                         return True
 
-        
         if self.parent:
             print('Updating parent')
             self.parent.update_var(name, new_type, self.parent.index)
